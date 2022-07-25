@@ -3,5 +3,7 @@ pluginManagement {
         id 'com.vaadin' version "${vaadinVersion}"
     }
 }
+
 rootProject.name = 'bisq2-web-ui'
 
+includeBuild('bisq2')
