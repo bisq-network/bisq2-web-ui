@@ -22,6 +22,7 @@ repositories {
     mavenCentral()
     maven { setUrl("https://maven.vaadin.com/vaadin-prereleases") }
     maven { url "https://plugins.gradle.org/m2/" }
+    maven { url "https://jitpack.io" }
 }
 
 //gretty {
@@ -45,6 +46,8 @@ dependencies {
 
     implementation("com.vaadin:vaadin-core")
     compileOnly("javax.servlet:javax.servlet-api:3.1.0")
+
+    implementation("bisq:identity")
 
     // logging
     // currently we are logging through the SLF4J API to SLF4J-Simple. See src/main/resources/simplelogger.properties file for the logger configuration
