@@ -1,0 +1,15 @@
+<component name="ProjectRunConfigurationManager">
+    <configuration default="false" name="Seed_2" type="Application" factoryName="Application">
+        <envs>
+            <env name="APPDATA" value="/work/bisq2/web-ui/"/>
+        </envs>
+        <option name="MAIN_CLASS_NAME" value="bisq.seed.SeedMain"/>
+        <module name="bisq.seed.main"/>
+        <option name="PROGRAM_PARAMETERS" value="--appName=bisq2_seed2"/>
+        <option name="VM_PARAMETERS"
+                value="-Dapplication.network.defaultNodePortByTransportType.clear=8001 -Dapplication.network.supportedTransportTypes.0=CLEAR -Dapplication.network.seedAddressByTransportType.clear.0=127.0.0.1:8000 -Dapplication.network.seedAddressByTransportType.clear.1=127.0.0.1:8001"/>
+        <method v="2">
+            <option name="Make" enabled="true"/>
+        </method>
+    </configuration>
+</component>

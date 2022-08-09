@@ -1,0 +1,17 @@
+<component name="ProjectRunConfigurationManager">
+    <configuration default="false" name="Alice_clear" type="Application" factoryName="Application">
+        <option name="ALTERNATIVE_JRE_PATH" value="corretto-17"/>
+        <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true"/>
+        <envs>
+            <env name="APPDATA" value="/work/bisq2/web-ui/"/>
+        </envs>
+        <option name="MAIN_CLASS_NAME" value="bisq.desktopapp.Main"/>
+        <module name="bisq.desktopapp.main"/>
+        <option name="PROGRAM_PARAMETERS" value="--appName=bisq2_Alice"/>
+        <option name="VM_PARAMETERS"
+                value="-Dapplication.network.supportedTransportTypes.0=CLEAR -Dapplication.network.seedAddressByTransportType.clear.0=127.0.0.1:8000 -Dapplication.network.seedAddressByTransportType.clear.1=127.0.0.1:8001"/>
+        <method v="2">
+            <option name="Make" enabled="true"/>
+        </method>
+    </configuration>
+</component>
