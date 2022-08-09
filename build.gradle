@@ -47,7 +47,22 @@ dependencies {
     implementation("com.vaadin:vaadin-core")
     compileOnly("javax.servlet:javax.servlet-api:3.1.0")
 
-    implementation("bisq:identity")
+    implementation('bisq:common')
+    implementation('bisq:persistence')
+    implementation('bisq:i18n')
+    implementation('bisq:security')
+    implementation('bisq:identity')
+    implementation('bisq:network')
+    implementation('bisq:account')
+    implementation('bisq:offer')
+    implementation('bisq:contract')
+    implementation('bisq:protocol')
+    implementation('bisq:oracle')
+    implementation('bisq:settings')
+    implementation('bisq:user')
+    implementation('bisq:chat')
+    implementation('bisq:presentation')
+    implementation('bisq:application')
 
     // logging
     // currently we are logging through the SLF4J API to SLF4J-Simple. See src/main/resources/simplelogger.properties file for the logger configuration

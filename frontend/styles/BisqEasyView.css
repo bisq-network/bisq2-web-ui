@@ -1,9 +1,49 @@
+.nameTag {
+    font-size: var(--lumo-font-size-s);
+}
+
+.message {
+    display: flex;
+    flex-direction: column;
+}
+
+.msgTag {
+    background-color: black;
+    padding: 15px;
+    width: unset;
+    border-radius: 15px;
+}
+
+.isMyMessage {
+    justify-content: end;
+}
+
 .mainCols {
     width: 100%;
     height: 100%;
 }
 
 .channelColumn {
-    width: 30%;
     min-width: 200px;
+}
+
+.channelLabel {
+    flex: 1;
+    padding-top: 12px;
+}
+
+.chatHeader {
+    width: 100%;
+}
+
+.offerOnlyCheck {
+    padding-top: 7px;
+}
+
+.enterField {
+    flex: 1;
+}
+
+.messageLayout {
+    width: 100%;
 }
