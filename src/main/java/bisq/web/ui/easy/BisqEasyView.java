@@ -64,17 +64,15 @@ public class BisqEasyView extends HorizontalLayout {
     public BisqEasyView() {
         setSizeFull();
 
-        channelColumn = new VerticalLayout();
+        channelColumn = UIUtils.create(new VerticalLayout(), this::add, "channelColumn");
         channelColumn.setWidth("30%");
-        channelColumn.addClassName("channelColumn");
-        add(channelColumn);
 
-        Label marketLabel = new Label("Market Channels");//Res.get("social.marketChannels"));
-        channelColumn.add(marketLabel);
+        Label marketLabel = UIUtils.create(new Label("Market Channels"), channelColumn::add, "marketLabel");
+        //Res.get("social.marketChannels"));
+
 
         // combo channel select
-        tradeChannelBox = new ComboBox<>();
-        channelColumn.add(tradeChannelBox);
+        tradeChannelBox = UIUtils.create(new ComboBox<>(), channelColumn::add, "tradeChannelBox");
         tradeChannelBox.setItems(publicTradeChannelService().getChannels());
         tradeChannelBox.setItemLabelGenerator(PublicTradeChannel::getDisplayString);
         tradeChannelBox.addValueChangeListener(ev -> {
@@ -86,19 +84,15 @@ public class BisqEasyView extends HorizontalLayout {
         tradeChannelBox.setPlaceholder("Add market channel");// Res.get("tradeChat.addMarketChannel"));
 
         // add / remove channel
-        HorizontalLayout chButtonbar = new HorizontalLayout();
-        channelColumn.add(chButtonbar);
-        Button plusButton = new Button(new Icon(VaadinIcon.PLUS));
-        chButtonbar.add(plusButton);
+        HorizontalLayout chButtonbar = UIUtils.create(new HorizontalLayout(), channelColumn::add);
+        Button plusButton = UIUtils.create(new Button(new Icon(VaadinIcon.PLUS)), chButtonbar::add, "plusButton");
         plusButton.addClickListener(ev -> tradeChannelBox.setVisible(true));
 
 
-        Button minusButton = new Button(new Icon(VaadinIcon.MINUS));
-        chButtonbar.add(minusButton);
+        Button minusButton = UIUtils.create(new Button(new Icon(VaadinIcon.MINUS)), chButtonbar::add, "minusButton");
         minusButton.addClickListener(ev -> hideChannel());
 
-        listTradeChannels = new ListBox<>();
-        channelColumn.add(listTradeChannels);
+        listTradeChannels = UIUtils.create(new ListBox<>(), channelColumn::add);
         listTradeChannels.setItemLabelGenerator(PublicTradeChannel::getDisplayString);
         loadListTradeChannels();
         listTradeChannels.addValueChangeListener(ev -> selectChannel());
@@ -107,7 +101,7 @@ public class BisqEasyView extends HorizontalLayout {
         channelColumn.add(divider);
 
 
-        // provate section  ----------------------------------------------------------
+        // private section  ----------------------------------------------------------
 
         // chatColumn
         chatColumn = UIUtils.create(new VerticalLayout(), this::add, "chatColumn");
