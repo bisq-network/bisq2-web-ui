@@ -1,9 +1,18 @@
 package bisq.web.ui.easy;
 
+import bisq.application.DefaultApplicationService;
 import bisq.chat.channel.Channel;
 import bisq.chat.message.ChatMessage;
+import bisq.chat.message.PublicChatMessage;
 import bisq.chat.trade.pub.PublicTradeChannel;
+import bisq.chat.trade.pub.PublicTradeChannelService;
+import bisq.chat.trade.pub.PublicTradeChatMessage;
+import bisq.common.observable.ObservableSet;
+import bisq.common.observable.Pin;
+import bisq.settings.SettingsService;
+import bisq.user.identity.UserIdentity;
 import bisq.user.profile.UserProfile;
+import bisq.web.base.BisqContext;
 import bisq.web.base.MainLayout;
 import bisq.web.base.UIUtils;
 import com.vaadin.flow.component.Key;
@@ -25,10 +34,11 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouteAlias;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.Collections;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 
 @Route(value = "easy", layout = MainLayout.class)
@@ -36,19 +46,18 @@ import java.util.Optional;
 @CssImport("./styles/shared-styles.css")
 @CssImport("./styles/BisqEasyView.css")
 @Slf4j
-public class BisqEasyView extends HorizontalLayout implements IBisqEasyView {
+public class BisqEasyView extends HorizontalLayout {
 
     public static final String CHANNEL_PARAM = "channel"; // URL parameter for choosing the channel
 
     protected final VerticalLayout chatColumn;
     protected final VerticalLayout channelColumn;
     protected final ComboBox<PublicTradeChannel> tradeChannelBox;
-    protected final ListBox<Channel<? extends ChatMessage>> listTradeChannels;
+    protected final ListBox<PublicTradeChannel> listTradeChannels;
     protected final Label channelLabel;
-    protected final Grid<ChatMessage> chatGrid;
+    protected final Grid<PublicChatMessage> chatGrid;
     protected final TextField enterField;
-    @Getter
-    private BisqEasyPresenter presenter = new BisqEasyPresenter(this);
+    protected Pin selectedChannelPin;
 
 
     public BisqEasyView() {
@@ -63,8 +72,8 @@ public class BisqEasyView extends HorizontalLayout implements IBisqEasyView {
 
         // combo channel select
         tradeChannelBox = UIUtils.create(new ComboBox<>(), channelColumn::add, "tradeChannelBox");
-        tradeChannelBox.setItems(presenter.publicTradeChannelsProvider());
-        tradeChannelBox.setItemLabelGenerator(Channel::getDisplayString);
+        tradeChannelBox.setItems(BisqContext.get().getPublicTradeChannelService().getChannels());
+        tradeChannelBox.setItemLabelGenerator(PublicTradeChannel::getDisplayString);
         tradeChannelBox.addValueChangeListener(ev -> {
             if (ev.isFromClient()) {
                 boxSelection();
@@ -83,9 +92,9 @@ public class BisqEasyView extends HorizontalLayout implements IBisqEasyView {
         minusButton.addClickListener(ev -> hideChannel());
 
         listTradeChannels = UIUtils.create(new ListBox<>(), channelColumn::add);
-        listTradeChannels.setItemLabelGenerator(Channel::getDisplayString);
-        listTradeChannels.setItems(presenter.activeChannelProvider());
-        listTradeChannels.addValueChangeListener(ev -> presenter.selectChannel(ev.getValue()));
+        listTradeChannels.setItemLabelGenerator(PublicTradeChannel::getDisplayString);
+        loadListTradeChannels();
+        listTradeChannels.addValueChangeListener(ev -> selectChannel());
 
         Hr divider = new Hr();
         channelColumn.add(divider);
@@ -108,8 +117,7 @@ public class BisqEasyView extends HorizontalLayout implements IBisqEasyView {
         UIUtils.create(new Hr(), chatColumn::add);
 
         chatGrid = UIUtils.create(new Grid(), chatColumn::add, "chatGrid");
-        chatGrid.addColumn(new ComponentRenderer<Div, ChatMessage>(this::chatComponent));
-        chatGrid.setItems(presenter.loadChatMessageProvider());
+        chatGrid.addColumn(new ComponentRenderer<Div, PublicChatMessage>(this::chatComponent));
 
         HorizontalLayout messageLayout = UIUtils.create(new HorizontalLayout(), chatColumn::add, "messageLayout");
         enterField = UIUtils.create(new TextField(), messageLayout::add, "enterField");
@@ -123,19 +131,31 @@ public class BisqEasyView extends HorizontalLayout implements IBisqEasyView {
     private void send() {
         String text = enterField.getValue();
         if (text != null && !text.isEmpty()) {
-            presenter.sendMessage(text);
+            Channel<? extends ChatMessage> channel = BisqContext.get().getTradeChannelSelectionService().getSelectedChannel().get(); // TODO what about multiple window surfing???
+            UserIdentity userIdentity = BisqContext.get().getUserIdentityService().getSelectedUserProfile().get();
+//            checkNotNull(userIdentity, "chatUserIdentity must not be null at onSendMessage");
+//            Optional<Quotation> quotation = quotedMessageBlock.getQuotation();
+            if (channel instanceof PublicTradeChannel) {
+//                String dontShowAgainId = "sendMsgOfferOnlyWarn";
+                SettingsService settingsService = BisqContext.get().getApplicationService().getSettingsService();
+                if (settingsService.getOffersOnly().get()) {
+                    settingsService.setOffersOnly(false);
+
+                }
+                BisqContext.get().getChatService().getPublicTradeChannelService().publishChatMessage(text, Optional.empty(), (PublicTradeChannel) channel, userIdentity);
+            }
         }
         enterField.setValue(enterField.getEmptyValue());
     }
 
-    private Div chatComponent(ChatMessage message) {
+    private Div chatComponent(PublicChatMessage message) {
         Div ret = new Div();
         ret.addClassName("message");
-        if (presenter.isMyMessage(message)) {
+        if (isMyMessage(message)) {
             ret.addClassName("isMyMessage");
         }
         Div nameTag = UIUtils.create(new Div(), ret::add, "nameTag");
-        Optional<UserProfile> authorProfileOpt = presenter.findAuthor(message);
+        Optional<UserProfile> authorProfileOpt = BisqContext.get().getUserProfileService().findUserProfile(message.getAuthorId());
         authorProfileOpt.ifPresent(authorProfile -> {
             nameTag.setText(authorProfile.getNickName());
         });
@@ -144,29 +164,77 @@ public class BisqEasyView extends HorizontalLayout implements IBisqEasyView {
         return ret;
     }
 
-    @Override
-    public void stateChanged() {
-        presenter.getSelectedChannel().ifPresent(ch -> channelLabel.setText(ch.getDisplayString()));
+    private boolean isMyMessage(ChatMessage chatMessage) {
+        return BisqContext.get().getUserIdentityService().isUserIdentityPresent(chatMessage.getAuthorId());
+    }
+
+    private void selectChannel() {
+        if (selectedChannelPin != null) {
+            selectedChannelPin.unbind();
+        }
+        listTradeChannels.getOptionalValue().ifPresent(ch -> {
+            channelLabel.setText(ch.getDisplayString());
+            final UI currentUI = UI.getCurrent();
+            selectedChannelPin = ch.getChatMessages().addChangedListener(() -> {
+                // https://vaadin.com/docs/latest/advanced/server-push
+                currentUI.access(() -> {
+                    ObservableSet<PublicTradeChatMessage> chatMessages = ch.getChatMessages();
+                    log.info("async change of chatmessage , no of messages: " + chatMessages.size());
+                    chatGrid.setItems(ch.getChatMessages().stream().collect(Collectors.toList()));
+                });
+            });
+        });
     }
 
     private void hideChannel() {
-        presenter.hideSelectedChannel();
-        tradeChannelBox.setVisible(false);
+        listTradeChannels.getOptionalValue().ifPresent(ch -> {
+            if (selectedChannelPin != null) {
+                selectedChannelPin.unbind();
+            }
+            BisqContext.get().getPublicTradeChannelService().hidePublicTradeChannel(ch);
+            BisqContext.get().getPublicTradeChannelService().persist();
+            loadListTradeChannels();
+            tradeChannelBox.setVisible(false);
+            chatGrid.setItems(Collections.emptyList());
+        });
     }
 
     private void boxSelection() {
         tradeChannelBox.getOptionalValue().ifPresent(ch -> {
             // add channel and select
-            presenter.selectChannel(ch);
+            BisqContext.get().getChatService().getPublicTradeChannelService().showChannel(ch);
+            BisqContext.get().getChatService().getPublicTradeChannelService().persist();
+            loadListTradeChannels();
+            listTradeChannels.setValue(ch);
         });
         tradeChannelBox.setValue(null);
         tradeChannelBox.setVisible(false);
     }
 
-    @Override
-    public Runnable pushCallBack(Runnable command) {
-        final UI sourceUI = UI.getCurrent();
-        return () -> sourceUI.access(() -> command.run()); //avoiding dependency to vaadin command
+    private void loadListTradeChannels() {
+        listTradeChannels.setItems(BisqContext.get().getPublicTradeChannelService().getChannels().stream()//
+                .filter(BisqContext.get().getPublicTradeChannelService()::isVisible) //
+                .collect(Collectors.toList()));
     }
 
+
+    private void printEurChannel() {
+        DefaultApplicationService app = BisqContext.get().getApplicationService();
+        PublicTradeChannelService ptcs = app.getChatService().getPublicTradeChannelService();
+        ptcs.getVisibleChannelIds();
+        PublicTradeChannel eurChannel = ptcs.getChannels().stream() //
+                .filter(ch -> "EUR".equals(ch.getMarket().getQuoteCurrencyCode()))//
+                .findAny() //
+                .get();
+
+        eurChannel.getChatMessages().stream().forEach(System.out::println);
+    }
+
+    private String formatAmount(long amount, String market) {
+        if (market.startsWith("BTC")) {
+            String amountAsString = Long.toString(amount);
+            return "0,00000000".substring(0, 10 - amountAsString.length()) + amountAsString;
+        }
+        return "";
+    }
 }
