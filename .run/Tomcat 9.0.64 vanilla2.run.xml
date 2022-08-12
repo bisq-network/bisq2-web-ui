@@ -4,7 +4,7 @@
                    APPLICATION_SERVER_NAME="Tomcat 9.0.64 vanilla" ALTERNATIVE_JRE_ENABLED="true"
                    ALTERNATIVE_JRE_PATH="adopt-11">
         <option name="OPEN_IN_BROWSER" value="false"/>
-        <option name="COMMON_VM_ARGUMENTS" value="-XX:HotswapAgent=fatjar"/>
+        <option name="COMMON_VM_ARGUMENTS" value="-XX:HotswapAgent=fatjar -DAPPDATA=/work/bisq2/web-ui/web-app"/>
         <option name="SHOW_DIALOG_ON_UPDATE" value="false"/>
         <deployment>
             <artifact name="Gradle : bisq2-web-ui.war (exploded)">
@@ -53,6 +53,11 @@
                 <option name="VM_PARAMETERS" value=""/>
                 <option name="PROGRAM_PARAMETERS" value=""/>
             </SHUTDOWN>
+            <EnvironmentVariables>
+                <option name="NAME" value="APPDATA"/>
+                <option name="VALUE" value="/work/bisq2/web-ui/web-app"/>
+                <option name="IS_PREDEFINED" value="false"/>
+            </EnvironmentVariables>
         </ConfigurationWrapper>
         <ConfigurationWrapper VM_VAR="JAVA_OPTS" RunnerId="Profile">
             <option name="USE_ENV_VARIABLES" value="true"/>
@@ -85,12 +90,7 @@
             </SHUTDOWN>
             <EnvironmentVariables>
                 <option name="NAME" value="APPDATA"/>
-                <option name="VALUE" value="/work/bisq2/web-ui/"/>
-                <option name="IS_PREDEFINED" value="false"/>
-            </EnvironmentVariables>
-            <EnvironmentVariables>
-                <option name="NAME" value="appName"/>
-                <option name="VALUE" value="bisq2_web"/>
+                <option name="VALUE" value="/work/bisq2/web-ui/web-app"/>
                 <option name="IS_PREDEFINED" value="false"/>
             </EnvironmentVariables>
         </ConfigurationWrapper>

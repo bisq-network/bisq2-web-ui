@@ -1,6 +1,9 @@
 package bisq.web.base;
 
 import bisq.application.DefaultApplicationService;
+import bisq.chat.ChatService;
+import bisq.chat.trade.TradeChannelSelectionService;
+import bisq.chat.trade.pub.PublicTradeChannelService;
 import bisq.user.identity.UserIdentityService;
 import bisq.user.profile.UserProfileService;
 import lombok.Getter;
@@ -21,7 +24,7 @@ public class BisqContext {
 
     public static BisqContext get() {
         if (instance.getApplicationService() == null) {
-            instance.startP2PNetwork("--appName=bisq2_web_ui", "--data-dir=c:\\work\\bisq2\\web-ui\\ui");
+            instance.startP2PNetwork();
         }
         return instance;
     }
@@ -32,5 +35,17 @@ public class BisqContext {
 
     public UserProfileService getUserProfileService() {
         return BisqContext.get().getApplicationService().getUserService().getUserProfileService();
+    }
+
+    public PublicTradeChannelService getPublicTradeChannelService() {
+        return getApplicationService().getChatService().getPublicTradeChannelService();
+    }
+
+    public ChatService getChatService() {
+        return getApplicationService().getChatService();
+    }
+
+    public TradeChannelSelectionService getTradeChannelSelectionService() {
+        return getChatService().getTradeChannelSelectionService();
     }
 }
