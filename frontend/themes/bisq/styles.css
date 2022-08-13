@@ -1,0 +1,121 @@
+@font-face {
+    font-family: 'IBMPlexSans';
+    src: url('./fonts/IBMPlexSans-Regular.ttf');
+}
+
+@font-face {
+    font-family: "IBM Plex Sans Medium";
+    src: url("./fonts/IBMPlexSans-Medium.ttf");
+}
+
+
+html, :host {
+    --bisq-green: #56ae48;
+    --bisq-green-lighter: #53a746;
+    --bisq-green-darker: #488e3e;
+    --bisq-white: white;
+    --bisq-black: #000000;
+    --bisq-turquoise: #2cacaf;
+    --bisq-buy: #006600;
+    --bisq-sell: #660000;
+    --bisq-red: #d02c1f;
+    --bisq-warning: #d0831f;
+
+    /* Greys */
+    --bisq-grey-dimmed: #828282;
+    --bisq-grey-disabled: #4D4D4D;
+    --bisq-grey-2: #1D1D1D;
+    --bisq-grey-3: #212121;
+    --bisq-grey-4: #262626;
+    --bisq-grey-5: #333333;
+    --bisq-grey-6: #474748;
+    --bisq-grey-8: #545454;
+    --bisq-grey-10: #a9a9a9;
+    --bisq-grey-11: #C9C9C9;
+    --bisq-grey-12: #2E2E2E;
+    --bisq-grey-13: #6A6A6A;
+    --bisq-grey-14: #474747;
+    --bisq-grey-15: #292929;
+    --bisq-grey-16: #393939;
+    --bisq-grey-17: #2f2f2f;
+    --bisq-grey-18: #151515;
+    --bisq-grey-19: #282828;
+    --bisq-grey-20: #454545;
+    --bisq-grey-21: #343434;
+    --bisq-grey-22: #707070;
+    --bisq-grey-23: #1e1e1e;
+    --bisq-grey-24: #2c2c2c;
+
+    /* Base (background) */
+    --lumo-base-color: var(--bisq-grey-4);
+    /* Tint */
+    --lumo-tint-5pct: hsla(214, 65%, 85%, 0.06);
+    --lumo-tint-10pct: hsla(214, 60%, 80%, 0.14);
+    --lumo-tint-20pct: hsla(214, 64%, 82%, 0.23);
+    --lumo-tint-30pct: hsla(214, 69%, 84%, 0.32);
+    --lumo-tint-40pct: hsla(214, 73%, 86%, 0.41);
+    --lumo-tint-50pct: hsla(214, 78%, 88%, 0.5);
+    --lumo-tint-60pct: hsla(214, 82%, 90%, 0.58);
+    --lumo-tint-70pct: hsla(214, 87%, 92%, 0.69);
+    --lumo-tint-80pct: hsla(214, 91%, 94%, 0.8);
+    --lumo-tint-90pct: hsla(214, 96%, 96%, 0.9);
+    --lumo-tint: hsl(214, 100%, 98%);
+    /* Shade */
+    --lumo-shade-5pct: hsla(214, 0%, 0%, 0.07);
+    --lumo-shade-10pct: hsla(214, 4%, 2%, 0.15);
+    --lumo-shade-20pct: hsla(214, 8%, 4%, 0.23);
+    --lumo-shade-30pct: hsla(214, 12%, 6%, 0.32);
+    --lumo-shade-40pct: hsla(214, 16%, 8%, 0.41);
+    --lumo-shade-50pct: hsla(214, 20%, 10%, 0.5);
+    --lumo-shade-60pct: hsla(214, 24%, 12%, 0.6);
+    --lumo-shade-70pct: hsla(214, 28%, 13%, 0.7);
+    --lumo-shade-80pct: hsla(214, 32%, 13%, 0.8);
+    --lumo-shade-90pct: hsla(214, 33%, 13%, 0.9);
+    --lumo-shade: hsl(214, 33%, 13%);
+    /* Contrast */
+    --lumo-contrast-5pct: var(--lumo-tint-5pct);
+    --lumo-contrast-10pct: var(--lumo-tint-10pct);
+    --lumo-contrast-20pct: var(--lumo-tint-20pct);
+    --lumo-contrast-30pct: var(--lumo-tint-30pct);
+    --lumo-contrast-40pct: var(--lumo-tint-40pct);
+    --lumo-contrast-50pct: var(--lumo-tint-50pct);
+    --lumo-contrast-60pct: var(--lumo-tint-60pct);
+    --lumo-contrast-70pct: var(--lumo-tint-70pct);
+    --lumo-contrast-80pct: var(--lumo-tint-80pct);
+    --lumo-contrast-90pct: var(--lumo-tint-90pct);
+    --lumo-contrast: var(--lumo-tint);
+    /* Text */
+    --lumo-header-text-color: var(--bisq-grey-13);
+    --lumo-body-text-color: var(--bisq-grey-13);
+    --lumo-secondary-text-color: var(--bisq-grey-13);
+    --lumo-tertiary-text-color: var(--bisq-grey-13);
+    --lumo-disabled-text-color: var(--bisq-grey-13);
+    /* Primary */
+    --lumo-primary-color: hsl(214, 90%, 48%);
+    --lumo-primary-color-50pct: hsla(214, 90%, 70%, 0.69);
+    --lumo-primary-color-10pct: hsla(214, 90%, 55%, 0.13);
+    --lumo-primary-text-color: hsl(214, 90%, 77%);
+    --lumo-primary-contrast-color: #fff;
+    /* Error */
+    --lumo-error-color: hsl(3, 79%, 49%);
+    --lumo-error-color-50pct: hsla(3, 75%, 62%, 0.5);
+    --lumo-error-color-10pct: hsla(3, 75%, 62%, 0.14);
+    --lumo-error-text-color: hsl(3, 100%, 80%);
+    /* Success */
+    --lumo-success-color: hsl(145, 72%, 30%);
+    --lumo-success-color-50pct: hsla(145, 92%, 51%, 0.5);
+    --lumo-success-color-10pct: hsla(145, 92%, 51%, 0.1);
+    --lumo-success-text-color: hsl(145, 85%, 46%);
+    
+    /* Fonts */
+    --lumo-font-family: 'IBMPlexSans';
+    --lumo-font-size: 13px;
+    
+    /* Components */
+    /* List box */
+    --_lumo-list-box-item-selected-icon-display: none;
+}
+
+[part~='cell'] ::slotted(vaadin-grid-cell-content) {
+    width: auto;
+}

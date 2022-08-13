@@ -22,8 +22,10 @@ import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Hr;
+import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.html.Label;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
@@ -66,6 +68,8 @@ public class BisqEasyView extends HorizontalLayout {
         channelColumn = UIUtils.create(new VerticalLayout(), this::add, "channelColumn");
         channelColumn.setWidth("30%");
 
+        UIUtils.create(new Image("./images/logo_grey.png", "Bisq logo"), channelColumn::add);
+        
         Label marketLabel = UIUtils.create(new Label("Market Channels"), channelColumn::add, "marketLabel");
         //Res.get("social.marketChannels"));
 
@@ -91,7 +95,7 @@ public class BisqEasyView extends HorizontalLayout {
         Button minusButton = UIUtils.create(new Button(new Icon(VaadinIcon.MINUS)), chButtonbar::add, "minusButton");
         minusButton.addClickListener(ev -> hideChannel());
 
-        listTradeChannels = UIUtils.create(new ListBox<>(), channelColumn::add);
+        listTradeChannels = UIUtils.create(new ListBox<>(), channelColumn::add, "listTradeChannels");
         listTradeChannels.setItemLabelGenerator(PublicTradeChannel::getDisplayString);
         loadListTradeChannels();
         listTradeChannels.addValueChangeListener(ev -> selectChannel());
@@ -117,6 +121,7 @@ public class BisqEasyView extends HorizontalLayout {
         UIUtils.create(new Hr(), chatColumn::add);
 
         chatGrid = UIUtils.create(new Grid(), chatColumn::add, "chatGrid");
+        chatGrid.addThemeVariants(GridVariant.LUMO_NO_BORDER, GridVariant.LUMO_NO_ROW_BORDERS);
         chatGrid.addColumn(new ComponentRenderer<Div, PublicChatMessage>(this::chatComponent));
 
         HorizontalLayout messageLayout = UIUtils.create(new HorizontalLayout(), chatColumn::add, "messageLayout");
