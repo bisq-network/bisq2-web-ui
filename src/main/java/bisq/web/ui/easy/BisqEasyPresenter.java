@@ -40,7 +40,7 @@ public class BisqEasyPresenter {
         this.iBisqEasyView = iBisqEasyView;
     }
 
-    public ListDataProvider<ChatMessage> loadChatMessageProvider() {
+    public ListDataProvider<ChatMessage> chatMessageProvider() {
         chatMessageProvider = new ListDataProvider<>(new ArrayList<>());
         return chatMessageProvider;
     }
@@ -64,7 +64,6 @@ public class BisqEasyPresenter {
     }
 
     public void sendMessage(String text) {
-//        Channel<? extends ChatMessage> channel =  BisqContext.get().getTradeChannelSelectionService().getSelectedChannel().get(); // TODO what about multiple window surfing???
         selectedChannel.ifPresent(channel -> {
             UserIdentity userIdentity = BisqContext.get().getUserIdentityService().getSelectedUserProfile().get();
 //            checkNotNull(userIdentity, "chatUserIdentity must not be null at onSendMessage");
@@ -73,7 +72,7 @@ public class BisqEasyPresenter {
                 SettingsService settingsService = BisqContext.get().getApplicationService().getSettingsService();
                 if (settingsService.getOffersOnly().get()) {
                     settingsService.setOffersOnly(false);
-                    // writing to persist??
+                    BisqContext.get().getApplicationService().getSettingsService().persist();
                 }
                 BisqContext.get().getChatService().getPublicTradeChannelService().publishChatMessage(text, Optional.empty(), (PublicTradeChannel) channel, userIdentity);
             }
@@ -85,14 +84,15 @@ public class BisqEasyPresenter {
         if (selectedChannelPin != null) {
             selectedChannelPin.unbind();
         }
-        selectedChannel = Optional.of(channel);
-        showChannel(channel);
-        selectedChannelPin = channel.getChatMessages().addChangedListener(iBisqEasyView.pushCallBack(() -> {
-            chatMessageProvider.getItems().clear();
-            chatMessageProvider.getItems().addAll(channel.getChatMessages());
-            chatMessageProvider.refreshAll();
-        }));
-
+        selectedChannel = Optional.ofNullable(channel);
+        if (selectedChannel.isPresent()) {
+            showChannel(channel);
+            selectedChannelPin = channel.getChatMessages().addChangedListener(iBisqEasyView.pushCallBack(() -> {
+                chatMessageProvider.getItems().clear();
+                chatMessageProvider.getItems().addAll(channel.getChatMessages());
+                chatMessageProvider.refreshAll();
+            }));
+        }
         iBisqEasyView.stateChanged();
     }
 
@@ -115,12 +115,14 @@ public class BisqEasyPresenter {
             activeChannelProvider.refreshAll();
             chatMessageProvider.getItems().clear();
             chatMessageProvider.refreshAll();
+            selectedChannel = Optional.empty();
+            iBisqEasyView.stateChanged();
         });
     }
 
     void showChannel(Channel ch) {
-        boolean alreadyInCollection = activeChannelProvider.getItems().add(ch);
-        if (!alreadyInCollection) {
+        if (!activeChannelProvider.getItems().contains(ch)) {
+            activeChannelProvider.getItems().add(ch);
             activeChannelProvider.refreshAll();
             BisqContext.get().getChatService().getPublicTradeChannelService().showChannel((PublicTradeChannel) ch);
             //TODO check hierarchy (why do i need a classcast)?
