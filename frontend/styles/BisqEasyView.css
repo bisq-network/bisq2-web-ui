@@ -43,7 +43,7 @@
     font-family: 'IBM Plex Sans Medium';
 }
 
-.plusButton, 
+.plusButton,
 .minusButton {
     background: var(--bisq-grey-dimmed);
     color: var(--bisq-grey-2);
@@ -54,7 +54,7 @@
     min-height: 0;
 }
 
-.plusButton vaadin-icon, 
+.plusButton vaadin-icon,
 .minusButton vaadin-icon {
     padding: 0.2em;
 }
@@ -70,6 +70,22 @@
 }
 
 .listTradeChannels vaadin-item:hover {
+    color: var(--bisq-white);
+    cursor: pointer;
+    background: none;
+}
+
+.privateChannelList vaadin-item {
+    font-family: 'IBM Plex Sans Medium';
+    padding: 12px 40px;
+}
+
+.privateChannelList vaadin-item[selected],
+.privateChannelList vaadin-item[selected]:hover {
+    background: var(--bisq-grey-4);
+}
+
+.privateChannelList vaadin-item:hover {
     color: var(--bisq-white);
     cursor: pointer;
     background: none;

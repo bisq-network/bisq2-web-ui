@@ -2,6 +2,7 @@ package bisq.web.ui.easy;
 
 import bisq.chat.channel.Channel;
 import bisq.chat.message.ChatMessage;
+import bisq.chat.trade.priv.PrivateTradeChannel;
 import bisq.chat.trade.pub.PublicTradeChannel;
 import bisq.user.profile.UserProfile;
 import bisq.web.base.MainLayout;
@@ -50,6 +51,7 @@ public class BisqEasyView extends HorizontalLayout implements IBisqEasyView {
     protected final Label channelLabel;
     protected final Grid<ChatMessage> chatGrid;
     protected final TextField enterField;
+    protected final ListBox<PrivateTradeChannel> privateChannelList;
     @Getter
     private BisqEasyPresenter presenter = new BisqEasyPresenter(this);
 
@@ -62,7 +64,7 @@ public class BisqEasyView extends HorizontalLayout implements IBisqEasyView {
 
         UIUtils.create(new Image("./images/logo_grey.png", "Bisq logo"), channelColumn::add);
 
-        Label marketLabel = UIUtils.create(new Label("Market Channels"), channelColumn::add, "marketLabel");
+        Label marketLabel = UIUtils.create(new Label("Market channels"), channelColumn::add, "marketLabel");
         //Res.get("social.marketChannels"));
 
 
@@ -102,7 +104,16 @@ public class BisqEasyView extends HorizontalLayout implements IBisqEasyView {
 
         // private section  ----------------------------------------------------------
 
-        // chatColumn
+        privateChannelList = UIUtils.create(new ListBox<>(), channelColumn::add, "privateChannelList");
+        privateChannelList.setItemLabelGenerator(Channel::getDisplayString);
+        privateChannelList.setItems(presenter.privateTradeChannelsProvider());
+        privateChannelList.addValueChangeListener(ev -> {
+            if (ev.isFromClient()) {
+                presenter.selectChannel(ev.getValue());
+            }
+        });
+
+        // chatColumn ----------------------------------------------
         chatColumn = UIUtils.create(new VerticalLayout(), this::add, "chatColumn");
         chatColumn.setSizeFull();
 
@@ -161,7 +172,14 @@ public class BisqEasyView extends HorizontalLayout implements IBisqEasyView {
     @Override
     public void stateChanged() {
         channelLabel.setText(presenter.getSelectedChannel().map(Channel::getDisplayString).orElse(""));
-        listTradeChannels.setValue(presenter.getSelectedChannel().orElse(listTradeChannels.getEmptyValue()));
+        listTradeChannels.setValue(presenter.getSelectedChannel()
+                .filter(PublicTradeChannel.class::isInstance)
+                .orElse(listTradeChannels.getEmptyValue()));
+        PrivateTradeChannel privateTradeChannel = (PrivateTradeChannel) presenter.getSelectedChannel()
+                .filter(PrivateTradeChannel.class::isInstance)
+                .orElse(privateChannelList.getEmptyValue());
+        privateChannelList.setValue(privateTradeChannel);
+
         if (!presenter.getSelectedChannel().isPresent()) {
             enterField.setValue(enterField.getEmptyValue());
         }
