@@ -6,4 +6,4 @@ pluginManagement {
 
 rootProject.name = 'bisq2-web-ui'
 
-includeBuild('bisq2')
+includeBuild('bisq')
