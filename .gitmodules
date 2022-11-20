@@ -1,4 +1,4 @@
 [submodule "bisq"]
 	path = bisq
-	url = https://github.com/salokiam/bisq2-web-ui.git
-	branch = master
+	url = https://github.com/bisq-network/bisq2.git
+	branch = main
