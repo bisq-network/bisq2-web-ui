@@ -52,7 +52,7 @@ dependencies {
     implementation('bisq:i18n')
     implementation('bisq:security')
     implementation('bisq:identity')
-    implementation('bisq:network')
+    implementation('network:network')
     implementation('bisq:account')
     implementation('bisq:offer')
     implementation('bisq:contract')
