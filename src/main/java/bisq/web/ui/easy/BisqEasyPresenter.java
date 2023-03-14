@@ -29,14 +29,14 @@ import java.util.stream.Collectors;
 @Slf4j
 public class BisqEasyPresenter {
     @Getter
-    protected Optional<Channel<? extends ChatMessage>> selectedChannel = Optional.empty();
+    protected Optional<Channel> selectedChannel = Optional.empty();
     @Getter
     protected IBisqEasyView iBisqEasyView;
     protected Pin selectedChannelPin;
     protected ListDataProvider<ChatMessage> chatMessageProvider;
 
     protected ListDataProvider<PublicTradeChannel> publicTradeChannelProvider;
-    protected ListDataProvider<Channel<? extends ChatMessage>> activeChannelProvider;
+    protected ListDataProvider<PublicTradeChannel> activeChannelProvider;
     protected ListDataProvider<PrivateTradeChannel> privateTradeChannelProvider;
 
 
@@ -66,13 +66,13 @@ public class BisqEasyPresenter {
 
     protected <T> ListDataProvider<T> observableSet2ListProvider(ObservableArray<T> observableSet) {
         ListDataProvider<T> provider = new ListDataProvider<>(observableSet);
-        observableSet.addChangedListener(() -> iBisqEasyView.pushCallBack(provider::refreshAll));
+        observableSet.addChangedListener(iBisqEasyView.pushCallBack(provider::refreshAll));
         return provider;
     }
 
-    public ListDataProvider<Channel<? extends ChatMessage>> activeChannelProvider() {
+    public ListDataProvider<PublicTradeChannel> activePublicTradeChannelProvider() {
         PublicTradeChannelService publicTradeChannelService = BisqContext.get().getPublicTradeChannelService();
-        activeChannelProvider = new ListDataProvider<Channel<? extends ChatMessage>>(
+        activeChannelProvider = new ListDataProvider<PublicTradeChannel>(
                 publicTradeChannelService.getChannels().stream() //
                         .sorted(Comparator.comparing(PublicTradeChannel::getDisplayString)) //
                         .filter(publicTradeChannelService::isVisible) //
@@ -83,7 +83,8 @@ public class BisqEasyPresenter {
     public void sendMessage(String text) {
         selectedChannel.ifPresent(channel -> {
             UserIdentity userIdentity = BisqContext.get().getUserIdentityService().getSelectedUserIdentity().get();
-//            checkNotNull(userIdentity, "chatUserIdentity must not be null at onSendMessage");
+            if (userIdentity == null)
+                throw new NullPointerException("chatUserIdentity must not be null at onSendMessage");
 //            Optional<Quotation> quotation = quotedMessageBlock.getQuotation();
             SettingsService settingsService = BisqContext.get().getApplicationService().getSettingsService();
             if (settingsService.getOffersOnly().get()) {
@@ -107,11 +108,13 @@ public class BisqEasyPresenter {
         selectedChannel = Optional.ofNullable(channel);
         if (selectedChannel.isPresent()) {
             showChannel(channel);
-            selectedChannelPin = channel.getChatMessages().addChangedListener(iBisqEasyView.pushCallBack(() -> {
-                chatMessageProvider.getItems().clear();
-                chatMessageProvider.getItems().addAll(channel.getChatMessages());
-                chatMessageProvider.refreshAll();
-            }));
+            selectedChannelPin = channel.getChatMessages().addChangedListener(
+                    iBisqEasyView.pushCallBack(() -> {
+                        chatMessageProvider.getItems().clear();
+                        chatMessageProvider.getItems().addAll(channel.getChatMessages());
+                        chatMessageProvider.refreshAll();
+                    }));
+
         }
         iBisqEasyView.stateChanged();
     }

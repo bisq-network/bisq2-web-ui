@@ -21,7 +21,6 @@ import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.html.Label;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
-import com.vaadin.flow.component.listbox.ListBox;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
@@ -47,11 +46,11 @@ public class BisqEasyView extends HorizontalLayout implements IBisqEasyView {
     protected final VerticalLayout chatColumn;
     protected final VerticalLayout channelColumn;
     protected final ComboBox<PublicTradeChannel> tradeChannelBox;
-    protected final ListBox<Channel<? extends ChatMessage>> listTradeChannels;
+    protected final Grid<PublicTradeChannel> listTradeChannels;
     protected final Label channelLabel;
     protected final Grid<ChatMessage> chatGrid;
     protected final TextField enterField;
-    protected final ListBox<PrivateTradeChannel> privateChannelList;
+    protected final Grid<PrivateTradeChannel> privateChannelList;
     @Getter
     private BisqEasyPresenter presenter = new BisqEasyPresenter(this);
 
@@ -89,12 +88,14 @@ public class BisqEasyView extends HorizontalLayout implements IBisqEasyView {
         Button minusButton = UIUtils.create(new Button(new Icon(VaadinIcon.MINUS)), chButtonbar::add, "minusButton");
         minusButton.addClickListener(ev -> hideChannel());
 
-        listTradeChannels = UIUtils.create(new ListBox<>(), channelColumn::add, "listTradeChannels");
-        listTradeChannels.setItemLabelGenerator(Channel::getDisplayString);
-        listTradeChannels.setItems(presenter.activeChannelProvider());
-        listTradeChannels.addValueChangeListener(ev -> {
-            if (ev.isFromClient()) {
-                presenter.selectChannel(ev.getValue());
+        listTradeChannels = UIUtils.create(new Grid<>(), channelColumn::add, "listTradeChannels");
+        listTradeChannels.addThemeVariants(GridVariant.LUMO_NO_BORDER, GridVariant.LUMO_NO_ROW_BORDERS);
+        listTradeChannels.addColumn(Channel::getDisplayString);
+        listTradeChannels.setItems(presenter.activePublicTradeChannelProvider());
+        listTradeChannels.setSelectionMode(Grid.SelectionMode.SINGLE);
+        listTradeChannels.asSingleSelect().addValueChangeListener(ev1 -> {
+            if (ev1.isFromClient()) {
+                presenter.selectChannel(ev1.getValue());
             }
         });
 
@@ -104,12 +105,15 @@ public class BisqEasyView extends HorizontalLayout implements IBisqEasyView {
 
         // private section  ----------------------------------------------------------
 
-        privateChannelList = UIUtils.create(new ListBox<>(), channelColumn::add, "privateChannelList");
-        privateChannelList.setItemLabelGenerator(Channel::getDisplayString);
+        privateChannelList = UIUtils.create(new Grid<>(), channelColumn::add, "privateChannelList");
+        privateChannelList.addThemeVariants(GridVariant.LUMO_NO_BORDER, GridVariant.LUMO_NO_ROW_BORDERS);
+        privateChannelList.addColumn(Channel::getDisplayString);
         privateChannelList.setItems(presenter.privateTradeChannelsProvider());
-        privateChannelList.addValueChangeListener(ev -> {
-            if (ev.isFromClient()) {
-                presenter.selectChannel(ev.getValue());
+        privateChannelList.setSelectionMode(Grid.SelectionMode.SINGLE);
+        privateChannelList.asSingleSelect().addValueChangeListener(ev1 -> {
+            if (ev1.isFromClient()) {
+                presenter.selectChannel(ev1.getValue());
+                privateChannelList.getListDataView().refreshAll();
             }
         });
 
@@ -118,7 +122,6 @@ public class BisqEasyView extends HorizontalLayout implements IBisqEasyView {
         chatColumn.setSizeFull();
 
         // header -----
-
         HorizontalLayout chatHeader = UIUtils.create(new HorizontalLayout(), chatColumn::add, "chatHeader");
         channelLabel = UIUtils.create(new Label(), chatHeader::add, "channelLabel");
         Checkbox offerOnlyCheck = UIUtils.create(new Checkbox("Offers only"), chatHeader::add, "offerOnlyCheck");
@@ -172,13 +175,14 @@ public class BisqEasyView extends HorizontalLayout implements IBisqEasyView {
     @Override
     public void stateChanged() {
         channelLabel.setText(presenter.getSelectedChannel().map(Channel::getDisplayString).orElse(""));
-        listTradeChannels.setValue(presenter.getSelectedChannel()
+        listTradeChannels.select(presenter.getSelectedChannel()
                 .filter(PublicTradeChannel.class::isInstance)
-                .orElse(listTradeChannels.getEmptyValue()));
+                .map(PublicTradeChannel.class::cast)
+                .orElse(null));
         PrivateTradeChannel privateTradeChannel = (PrivateTradeChannel) presenter.getSelectedChannel()
                 .filter(PrivateTradeChannel.class::isInstance)
-                .orElse(privateChannelList.getEmptyValue());
-        privateChannelList.setValue(privateTradeChannel);
+                .orElse(null);
+        privateChannelList.select(privateTradeChannel);
 
         if (!presenter.getSelectedChannel().isPresent()) {
             enterField.setValue(enterField.getEmptyValue());

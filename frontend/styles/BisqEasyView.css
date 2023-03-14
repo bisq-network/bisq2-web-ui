@@ -59,33 +59,33 @@
     padding: 0.2em;
 }
 
-.listTradeChannels vaadin-item {
+.listTradeChannels vaadin-grid-cell-content {
     font-family: 'IBM Plex Sans Medium';
     padding: 12px 40px;
 }
 
-.listTradeChannels vaadin-item[selected],
-.listTradeChannels vaadin-item[selected]:hover {
+.listTradeChannels vaadin-grid-cell-content[selected],
+.listTradeChannels vaadin-grid-cell-content[selected]:hover {
     background: var(--bisq-grey-4);
 }
 
-.listTradeChannels vaadin-item:hover {
+.listTradeChannels vaadin-grid-cell-content:hover {
     color: var(--bisq-white);
     cursor: pointer;
     background: none;
 }
 
-.privateChannelList vaadin-item {
+.privateChannelList vaadin-grid-cell-content {
     font-family: 'IBM Plex Sans Medium';
     padding: 12px 40px;
 }
 
-.privateChannelList vaadin-item[selected],
-.privateChannelList vaadin-item[selected]:hover {
+.privateChannelList vaadin-grid-cell-content[selected],
+.privateChannelList vaadin-grid-cell-content[selected]:hover {
     background: var(--bisq-grey-4);
 }
 
-.privateChannelList vaadin-item:hover {
+.privateChannelList vaadin-grid-cell-content:hover {
     color: var(--bisq-white);
     cursor: pointer;
     background: none;
