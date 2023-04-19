@@ -6,18 +6,32 @@ import bisq.security.pow.ProofOfWorkService;
 import bisq.user.NymIdGenerator;
 import bisq.user.identity.UserIdentity;
 import bisq.web.base.BisqContext;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.experimental.Accessors;
 
 import java.security.KeyPair;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 
 /**
  * this aids in creating a new user.
  */
+@Accessors(chain = true)
 public class GenerateUser {
     protected String nym;
     protected CompletableFuture<ProofOfWork> proofOfWorkFuture;
     protected KeyPair keyPair;
+    @Getter
+    @Setter
+    protected String nickname = ""; //nulls not allowed
+    @Getter
+    @Setter
+    protected String terms = "";
+    @Getter
+    @Setter
+    protected String bio = "";
 
     /**
      * this must be called before a User can be generated. It starts the ProoOfWork in the background already.
@@ -37,20 +51,21 @@ public class GenerateUser {
         return DigestUtil.hash(keyPair.getPublic().getEncoded());
     }
 
-    public CompletableFuture<UserIdentity> generateUser(String nickname, String terms, String bio) {
+    public CompletableFuture<UserIdentity> generateUser() {
         final CompletableFuture<UserIdentity> userFuture;
         synchronized (this) {
             userFuture = BisqContext.get().getUserIdentityService().createAndPublishNewUserProfile(
-                    nickname, nym, keyPair, proofOfWorkFuture.join(), terms, bio);
+                            nickname, nym, keyPair, proofOfWorkFuture.join(), terms, bio) //
+                    .thenApply(userIdent -> {
+                        BisqContext.get().getUserIdentityService().persist().join();
+                        return userIdent;
+                    });
             keyPair = null; // make sure this is not reused!
             nym = null;
             proofOfWorkFuture = null;
         }
+        BisqContext.get().setUserFuture(userFuture);
         return userFuture;
-    }
-
-    public CompletableFuture<UserIdentity> generateUser(String nickname) {
-        return generateUser(nickname, "", "");
     }
 
     /**

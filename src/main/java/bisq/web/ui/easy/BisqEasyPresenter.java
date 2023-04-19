@@ -82,10 +82,8 @@ public class BisqEasyPresenter {
 
     public void sendMessage(String text) {
         selectedChannel.ifPresent(channel -> {
-            UserIdentity userIdentity = BisqContext.get().getUserIdentityService().getSelectedUserIdentity().get();
-            if (userIdentity == null)
-                throw new NullPointerException("chatUserIdentity must not be null at onSendMessage");
-//            Optional<Quotation> quotation = quotedMessageBlock.getQuotation();
+            UserIdentity userIdentity = BisqContext.get().getUserIdentity();
+            //            Optional<Quotation> quotation = quotedMessageBlock.getQuotation();
             SettingsService settingsService = BisqContext.get().getApplicationService().getSettingsService();
             if (settingsService.getOffersOnly().get()) {
                 settingsService.setOffersOnly(false);

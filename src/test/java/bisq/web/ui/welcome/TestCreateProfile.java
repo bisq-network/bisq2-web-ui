@@ -81,14 +81,21 @@ public class TestCreateProfile {
 
     @Test
     public void testSelecteduser() {
+        System.setProperty("application.network.supportedTransportTypes.0", "CLEAR");
+        System.setProperty("application.network.seedAddressByTransportType.clear.0", "127.0.0.1:8000");
+        System.setProperty("application.network.seedAddressByTransportType.clear.1", "127.0.0.1:8001");
+//        System.setProperty("","");
+        BisqContext.startP2PNetwork("--appName=bisq2_test");
         GenerateUser generateUser = new GenerateUser();
         Optional<UserIdentity> userIdentityOptional = generateUser.selectedUser();
         UserIdentity userIdentity = userIdentityOptional.orElseGet(() ->
-                generateUser.generateUser("nickname234").join()
+                generateUser.setNickname("nickname234").generateUser().join()
         );
         log.info("" + userIdentityOptional.isPresent());
         org.junit.jupiter.api.Assertions.assertTrue(userIdentity != null);
 
         log.info("username " + userIdentity.getUserName());
+        Boolean sucstore = BisqContext.get().getUserIdentityService().persist().join();
+        log.info("successful storing " + sucstore);
     }
 }

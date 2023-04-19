@@ -35,7 +35,6 @@ import java.util.Optional;
 
 
 @Route(value = "easy", layout = MainLayout.class)
-@RouteAlias("")
 @CssImport("./styles/shared-styles.css")
 @CssImport("./styles/BisqEasyView.css")
 @Slf4j
