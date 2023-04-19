@@ -15,9 +15,7 @@ import com.vaadin.flow.data.provider.ListDataProvider;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -70,13 +68,20 @@ public class BisqEasyPresenter {
         return provider;
     }
 
+    final List<PublicTradeChannel> visibleChannels = new ArrayList<>(); // effective final by vaadin
+
     public ListDataProvider<PublicTradeChannel> activePublicTradeChannelProvider() {
         PublicTradeChannelService publicTradeChannelService = BisqContext.get().getPublicTradeChannelService();
-        activeChannelProvider = new ListDataProvider<PublicTradeChannel>(
-                publicTradeChannelService.getChannels().stream() //
-                        .sorted(Comparator.comparing(PublicTradeChannel::getDisplayString)) //
-                        .filter(publicTradeChannelService::isVisible) //
-                        .collect(Collectors.toList()));
+        activeChannelProvider = new ListDataProvider<>(visibleChannels);
+
+        publicTradeChannelService.getVisibleChannelNames().addChangedListener(iBisqEasyView.pushCallBack(() -> {
+            visibleChannels.clear(); // unfortunately this must be final
+            publicTradeChannelService.getChannels().stream() //
+                    .sorted(Comparator.comparing(PublicTradeChannel::getDisplayString)) //
+                    .filter(publicTradeChannelService::isVisible) //
+                    .forEach(visibleChannels::add);
+            activeChannelProvider.refreshAll();
+        }));
         return activeChannelProvider;
     }
 
