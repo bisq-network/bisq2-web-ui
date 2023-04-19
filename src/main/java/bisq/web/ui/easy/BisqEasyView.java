@@ -162,12 +162,13 @@ public class BisqEasyView extends HorizontalLayout implements IBisqEasyView {
         if (presenter.isMyMessage(message)) {
             ret.addClassName("isMyMessage");
         }
-        Div nameTag = UIUtils.create(new Div(), ret::add, "nameTag");
+        Div msgBorder = UIUtils.create(new Div(), ret::add, "msgBorder");
+        Div nameTag = UIUtils.create(new Div(), msgBorder::add, "nameTag");
         Optional<UserProfile> authorProfileOpt = presenter.findAuthor(message);
         authorProfileOpt.ifPresent(authorProfile -> {
             nameTag.setText(authorProfile.getNickName());
         });
-        Div msgTag = UIUtils.create(new Div(), ret::add, "msgTag");
+        Div msgTag = UIUtils.create(new Div(), msgBorder::add, "msgTag");
         msgTag.setText(message.getText());
         return ret;
     }

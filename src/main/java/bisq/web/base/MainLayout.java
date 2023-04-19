@@ -30,7 +30,7 @@ public class MainLayout extends VerticalLayout implements RouterLayout, AppShell
         addClassName("MainLayout");
         HorizontalLayout topBar = new HorizontalLayout();
         topBar.addClassName("topBar");
-        add(topBar, createmenue());
+//        add(topBar, createmenue());
     }
 
     public MenuBar createmenue() {

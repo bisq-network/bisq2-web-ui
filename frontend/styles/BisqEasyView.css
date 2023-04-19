@@ -7,7 +7,7 @@
 
 .message {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     margin: 8px 0;
 }
 
@@ -109,10 +109,6 @@
 
 .chatGrid {
     height: 580px;
-}
-
-.chatGrid vaadin-grid-cell-content {
-    width: auto;
 }
 
 .searchField {
