@@ -103,6 +103,7 @@ public class BisqEasyView extends HorizontalLayout implements IBisqEasyView {
 
 
         // private section  ----------------------------------------------------------
+        UIUtils.create(new Label("Private channels"), channelColumn::add, "privateLabel");
 
         privateChannelList = UIUtils.create(new Grid<>(), channelColumn::add, "privateChannelList");
         privateChannelList.addThemeVariants(GridVariant.LUMO_NO_BORDER, GridVariant.LUMO_NO_ROW_BORDERS);
