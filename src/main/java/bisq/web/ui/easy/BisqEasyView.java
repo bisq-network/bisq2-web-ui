@@ -4,6 +4,8 @@ import bisq.chat.channel.Channel;
 import bisq.chat.message.ChatMessage;
 import bisq.chat.trade.priv.PrivateTradeChannel;
 import bisq.chat.trade.pub.PublicTradeChannel;
+import bisq.i18n.Res;
+import bisq.presentation.formatters.DateFormatter;
 import bisq.user.profile.UserProfile;
 import bisq.web.base.MainLayout;
 import bisq.web.base.UIUtils;
@@ -15,10 +17,7 @@ import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
-import com.vaadin.flow.component.html.Div;
-import com.vaadin.flow.component.html.Hr;
-import com.vaadin.flow.component.html.Image;
-import com.vaadin.flow.component.html.Label;
+import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -27,12 +26,14 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.provider.ListDataProvider;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.router.Route;
-import com.vaadin.flow.router.RouteAlias;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
+import java.text.DateFormat;
+import java.util.Date;
 import java.util.Optional;
 
+import org.vaadin.lineawesome.LineAwesomeIcon;
 
 @Route(value = "easy", layout = MainLayout.class)
 @CssImport("./styles/shared-styles.css")
@@ -50,6 +51,10 @@ public class BisqEasyView extends HorizontalLayout implements IBisqEasyView {
     protected final Grid<ChatMessage> chatGrid;
     protected final TextField enterField;
     protected final Grid<PrivateTradeChannel> privateChannelList;
+    protected final Div replyArea;
+    protected final Div replyHeader;
+    protected final Div replyAuthor;
+    protected final Div replyMessage;
     @Getter
     private BisqEasyPresenter presenter = new BisqEasyPresenter(this);
 
@@ -64,7 +69,6 @@ public class BisqEasyView extends HorizontalLayout implements IBisqEasyView {
 
         Label marketLabel = UIUtils.create(new Label("Market channels"), channelColumn::add, "marketLabel");
         //Res.get("social.marketChannels"));
-
 
         // combo channel select
         tradeChannelBox = UIUtils.create(new ComboBox<>(), channelColumn::add, "tradeChannelBox");
@@ -138,6 +142,20 @@ public class BisqEasyView extends HorizontalLayout implements IBisqEasyView {
             chatGrid.scrollToEnd(); // scroll down to display latest message
         });
         chatGrid.addThemeVariants(GridVariant.LUMO_NO_BORDER, GridVariant.LUMO_NO_ROW_BORDERS);
+        chatGrid.setSelectionMode(Grid.SelectionMode.NONE);
+
+        // reply area ---------------------------------------
+        replyArea = UIUtils.create(new Div(), chatColumn::add, "replyArea");
+        replyHeader = UIUtils.create(new Div(), replyArea::add, "replyHeader");
+        UIUtils.create(new Span("Replying to:"), replyHeader::add, "headerText");
+        Button replyClose = UIUtils.create(new Button(LineAwesomeIcon.WINDOW_CLOSE.create()), replyHeader::add, "replyClose");
+        replyClose.addClickListener(ev -> replyArea.setVisible(false));
+
+        replyAuthor = UIUtils.create(new Div(), replyArea::add, "replyAuthor");
+        replyMessage = UIUtils.create(new Div(), replyArea::add, "replyMessage");
+
+        replyArea.setVisible(false);
+        // message enter ----------------------------------------
 
         HorizontalLayout messageLayout = UIUtils.create(new HorizontalLayout(), chatColumn::add, "messageLayout");
         enterField = UIUtils.create(new TextField(), messageLayout::add, "enterField");
@@ -159,18 +177,38 @@ public class BisqEasyView extends HorizontalLayout implements IBisqEasyView {
     private Div chatComponent(ChatMessage message) {
         Div ret = new Div();
         ret.addClassName("message");
-        if (presenter.isMyMessage(message)) {
+        boolean myMessage = presenter.isMyMessage(message);
+        if (myMessage) {
             ret.addClassName("isMyMessage");
         }
         Div msgBorder = UIUtils.create(new Div(), ret::add, "msgBorder");
         Div nameTag = UIUtils.create(new Div(), msgBorder::add, "nameTag");
+        if (myMessage) {
+            nameTag.addClassName("isMyTag");
+        }
         Optional<UserProfile> authorProfileOpt = presenter.findAuthor(message);
         authorProfileOpt.ifPresent(authorProfile -> {
-            nameTag.setText(authorProfile.getNickName());
+            nameTag.add(new Span(authorProfile.getNickName()));
         });
+        String date = DateFormatter.formatDateTime(new Date(message.getDate()), DateFormat.MEDIUM, DateFormat.SHORT, true, " " + Res.get("at") + " ");
+        UIUtils.create(new Span(date), nameTag::add, "messDate");
         Div msgTag = UIUtils.create(new Div(), msgBorder::add, "msgTag");
         msgTag.setText(message.getText());
+        Div msgActions = UIUtils.create(new Div(), ret::add, "msgActions");
+        Button replyButton = UIUtils.create(new Button(LineAwesomeIcon.REPLY_SOLID.create()), msgBorder::add, "replyButton");
+        replyButton.addClickListener(event -> reply(message));
+        Button privateButton = UIUtils.create(new Button(LineAwesomeIcon.COMMENT_ALT.create()), msgBorder::add, "privateButton");
+        Button ignoreButton = UIUtils.create(new Button(LineAwesomeIcon.USER_MINUS_SOLID.create()), msgBorder::add, "ignoreButton");
+        Button petzButton = UIUtils.create(new Button(LineAwesomeIcon.USER_GRADUATE_SOLID.create()), msgBorder::add, "petzButton");
         return ret;
+    }
+
+    protected void reply(ChatMessage message) {
+
+        // first show reply dialog over new message
+        replyArea.setVisible(true);
+        replyAuthor.setText(presenter.findAuthor(message).map(UserProfile::getNickName).orElse(""));
+        replyMessage.setText(message.getText());
     }
 
     @Override

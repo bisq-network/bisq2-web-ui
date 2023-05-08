@@ -37,6 +37,8 @@ public class BisqEasyPresenter {
     protected ListDataProvider<PublicTradeChannel> activeChannelProvider;
     protected ListDataProvider<PrivateTradeChannel> privateTradeChannelProvider;
 
+    final List<PublicTradeChannel> visibleChannels = new ArrayList<>(); // effective final by vaadin
+
 
     public BisqEasyPresenter(IBisqEasyView iBisqEasyView) {
         this.iBisqEasyView = iBisqEasyView;
@@ -67,8 +69,6 @@ public class BisqEasyPresenter {
         observableSet.addChangedListener(iBisqEasyView.pushCallBack(provider::refreshAll));
         return provider;
     }
-
-    final List<PublicTradeChannel> visibleChannels = new ArrayList<>(); // effective final by vaadin
 
     public ListDataProvider<PublicTradeChannel> activePublicTradeChannelProvider() {
         PublicTradeChannelService publicTradeChannelService = BisqContext.get().getPublicTradeChannelService();

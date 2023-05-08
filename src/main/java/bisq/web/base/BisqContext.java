@@ -57,17 +57,14 @@ public class BisqContext {
     }
 
     public UserIdentity getUserIdentity() {
-        synchronized (userFutureOpt) { // operate on this instance only once
-            if (userFutureOpt.isPresent()) {
-                userFutureOpt.get().join(); // wait for it to finish.
-                userFutureOpt = Optional.empty();
-            }
+        if (userFutureOpt.isPresent()) {
+            userFutureOpt.get().join(); // wait for it to finish.
+            userFutureOpt = Optional.empty();
         }
         UserIdentity userIdentity = getUserIdentityService().getSelectedUserIdentity().get();
         if (userIdentity == null)
             throw new NullPointerException("UserIdentity must not be null at this point.");
         return userIdentity;
-
     }
 
     protected Optional<CompletableFuture<UserIdentity>> userFutureOpt = Optional.empty();
