@@ -2,6 +2,7 @@ package bisq.web.ui.easy;
 
 import bisq.chat.channel.Channel;
 import bisq.chat.message.ChatMessage;
+import bisq.chat.message.Quotation;
 import bisq.chat.trade.priv.PrivateTradeChannel;
 import bisq.chat.trade.pub.PublicTradeChannel;
 import bisq.chat.trade.pub.PublicTradeChannelService;
@@ -13,7 +14,9 @@ import bisq.user.profile.UserProfile;
 import bisq.web.base.BisqContext;
 import com.vaadin.flow.data.provider.ListDataProvider;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -36,6 +39,9 @@ public class BisqEasyPresenter {
     protected ListDataProvider<PublicTradeChannel> publicTradeChannelProvider;
     protected ListDataProvider<PublicTradeChannel> activeChannelProvider;
     protected ListDataProvider<PrivateTradeChannel> privateTradeChannelProvider;
+    @Getter
+    @Setter
+    protected ChatMessage replyMessage;
 
     final List<PublicTradeChannel> visibleChannels = new ArrayList<>(); // effective final by vaadin
 
@@ -90,15 +96,21 @@ public class BisqEasyPresenter {
             UserIdentity userIdentity = BisqContext.get().getUserIdentity();
             //            Optional<Quotation> quotation = quotedMessageBlock.getQuotation();
             SettingsService settingsService = BisqContext.get().getApplicationService().getSettingsService();
+            // bisq.desktop.primary.main.content.components.QuotedMessageBlock.getQuotation
+            Optional<Quotation> quotationOptional = Optional.ofNullable(replyMessage)//
+                    .filter(msg -> StringUtils.isNotBlank(msg.getText())) //
+                    .flatMap(this::findAuthor) //
+                    .map(authorProfile -> new Quotation(authorProfile.getNym(), authorProfile.getNickName(), authorProfile.getPubKeyHash(), replyMessage.getText()));
+
             if (settingsService.getOffersOnly().get()) {
                 settingsService.setOffersOnly(false);
                 BisqContext.get().getApplicationService().getSettingsService().persist();
             }
             if (channel instanceof PublicTradeChannel) {
-                BisqContext.get().getChatService().getPublicTradeChannelService().publishChatMessage(text, Optional.empty(), (PublicTradeChannel) channel, userIdentity);
+                BisqContext.get().getChatService().getPublicTradeChannelService().publishChatMessage(text, quotationOptional, (PublicTradeChannel) channel, userIdentity);
             }
             if (channel instanceof PrivateTradeChannel) {
-                BisqContext.get().getChatService().getPrivateTradeChannelService().sendPrivateChatMessage(text, Optional.empty(), (PrivateTradeChannel) channel);
+                BisqContext.get().getChatService().getPrivateTradeChannelService().sendPrivateChatMessage(text, quotationOptional, (PrivateTradeChannel) channel);
             }
         });
         iBisqEasyView.stateChanged();

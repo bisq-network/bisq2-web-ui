@@ -10,6 +10,7 @@ import bisq.user.profile.UserProfile;
 import bisq.web.base.MainLayout;
 import bisq.web.base.UIUtils;
 import com.vaadin.flow.component.Key;
+import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
@@ -172,6 +173,7 @@ public class BisqEasyView extends HorizontalLayout implements IBisqEasyView {
             presenter.sendMessage(text);
         }
         enterField.setValue(enterField.getEmptyValue());
+        replyArea.setVisible(false);
     }
 
     private Div chatComponent(ChatMessage message) {
@@ -193,7 +195,16 @@ public class BisqEasyView extends HorizontalLayout implements IBisqEasyView {
         String date = DateFormatter.formatDateTime(new Date(message.getDate()), DateFormat.MEDIUM, DateFormat.SHORT, true, " " + Res.get("at") + " ");
         UIUtils.create(new Span(date), nameTag::add, "messDate");
         Div msgTag = UIUtils.create(new Div(), msgBorder::add, "msgTag");
-        msgTag.setText(message.getText());
+        message.getQuotation() //
+                .ifPresent(quote -> {
+                            //quoteBox
+                            Div quoteBox = UIUtils.create(new Div(), msgTag::add, "quoteBox");
+                            Div quoteAuthor = UIUtils.create(new Div(), quoteBox::add, "quoteAuthor");
+                            quoteAuthor.setText(quote.getNickName());
+                            quoteBox.add(new Text(quote.getMessage()));
+                        }
+                );
+        msgTag.add(new Text(message.getText()));
         Div msgActions = UIUtils.create(new Div(), ret::add, "msgActions");
         Button replyButton = UIUtils.create(new Button(LineAwesomeIcon.REPLY_SOLID.create()), msgBorder::add, "replyButton");
         replyButton.addClickListener(event -> reply(message));
@@ -204,7 +215,7 @@ public class BisqEasyView extends HorizontalLayout implements IBisqEasyView {
     }
 
     protected void reply(ChatMessage message) {
-
+        presenter.setReplyMessage(message);
         // first show reply dialog over new message
         replyArea.setVisible(true);
         replyAuthor.setText(presenter.findAuthor(message).map(UserProfile::getNickName).orElse(""));

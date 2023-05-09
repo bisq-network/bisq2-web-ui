@@ -1,3 +1,13 @@
+.replyArea {
+    width: 100%;
+}
+
+.replyHeader {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
 .messDate {
     padding-left: 15px;
     opacity: 0;
