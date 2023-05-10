@@ -7,7 +7,6 @@ import bisq.chat.trade.pub.PublicTradeChannel;
 import bisq.i18n.Res;
 import bisq.presentation.formatters.DateFormatter;
 import bisq.user.profile.UserProfile;
-import bisq.web.base.BisqContext;
 import bisq.web.base.MainLayout;
 import bisq.web.base.UIUtils;
 import com.vaadin.flow.component.Key;
@@ -212,7 +211,9 @@ public class BisqEasyView extends HorizontalLayout implements IBisqEasyView {
         Button privateButton = UIUtils.create(new Button(LineAwesomeIcon.COMMENT_ALT.create()), msgBorder::add, "privateButton");
         privateButton.addClickListener(event -> presenter.openPrivateChat(message));
         Button ignoreButton = UIUtils.create(new Button(LineAwesomeIcon.USER_MINUS_SOLID.create()), msgBorder::add, "ignoreButton");
+        ignoreButton.addClickListener(event -> presenter.ignoreUser(message));
         Button petzButton = UIUtils.create(new Button(LineAwesomeIcon.USER_GRADUATE_SOLID.create()), msgBorder::add, "petzButton");
+        petzButton.addClickListener(event -> presenter.reportUser(message));
         return ret;
     }
 

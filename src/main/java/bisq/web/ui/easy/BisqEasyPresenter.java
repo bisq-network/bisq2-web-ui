@@ -64,11 +64,26 @@ public class BisqEasyPresenter {
         return publicTradeChannelProvider;
     }
 
+
+    public void reportUser(ChatMessage chatMessage) {
+        // ref bisq.desktop.primary.main.content.components.ChatMessagesListView.Controller.onReportUser
+        findAuthor(chatMessage).ifPresent(author ->
+                BisqContext.get().getChatService().reportUserProfile(author, ""));
+    }
+
+    public void ignoreUser(ChatMessage chatMessage) {
+        findAuthor(chatMessage).ifPresent(
+                BisqContext.get().getApplicationService().getUserService().getUserProfileService()::ignoreUserProfile);
+    }
+
+
     public ListDataProvider<PrivateTradeChannel> privateTradeChannelsProvider() {
 //        privateTradeChannelProvider = observableSet2ListProvider(BisqContext.get().getChatService().getPrivateTradeChannelService().getChannels());
         privateTradeChannelProvider = observableSet2ListProvider(BisqContext.get().getChatService().getTradeChannelSelectionService().getPrivateTradeChannelService().getChannels());
         return privateTradeChannelProvider;
     }
+
+    //bisq.chat.trade.TradeChannelSelectionService.reportUserProfile
 
     protected <T> ListDataProvider<T> observableSet2ListProvider(ObservableArray<T> observableSet) {
         ListDataProvider<T> provider = new ListDataProvider<>(observableSet);
