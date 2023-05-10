@@ -56,6 +56,7 @@ public class BisqEasyView extends HorizontalLayout implements IBisqEasyView {
     protected final Div replyHeader;
     protected final Div replyAuthor;
     protected final Div replyMessage;
+    protected final TextField searchField;
     @Getter
     private BisqEasyPresenter presenter = new BisqEasyPresenter(this);
 
@@ -130,8 +131,18 @@ public class BisqEasyView extends HorizontalLayout implements IBisqEasyView {
         HorizontalLayout chatHeader = UIUtils.create(new HorizontalLayout(), chatColumn::add, "chatHeader");
         channelLabel = UIUtils.create(new Label(), chatHeader::add, "channelLabel");
         Checkbox offerOnlyCheck = UIUtils.create(new Checkbox("Offers only"), chatHeader::add, "offerOnlyCheck");
-        TextField searchField = UIUtils.create(new TextField(), chatHeader::add, "searchField");
+        searchField = UIUtils.create(new TextField(), chatHeader::add, "searchField");
         searchField.setPlaceholder("Search");//Res.get("search"));
+        Button searchButton = new Button(LineAwesomeIcon.SEARCH_SOLID.create());
+        searchField.setPrefixComponent(searchButton);
+        searchButton.addClickListener(event -> searchMessages());
+        searchField.addKeyPressListener(Key.ENTER, event -> searchMessages());
+        searchField.setClearButtonVisible(true);
+        searchField.addValueChangeListener(event -> {
+            if (event.isFromClient()) {
+                searchMessages();
+            }
+        });
 
         UIUtils.create(new Hr(), chatColumn::add);
 
@@ -165,6 +176,16 @@ public class BisqEasyView extends HorizontalLayout implements IBisqEasyView {
 
         Button sendButton = UIUtils.create(new Button(new Icon(VaadinIcon.CARET_RIGHT)), messageLayout::add, "sendButton");
         sendButton.addClickListener(ev -> send());
+    }
+
+    private void searchMessages() {
+        chatGrid.getListDataView().removeFilters();
+        searchField.getOptionalValue().ifPresent(
+                searchText -> {
+                    chatGrid.getListDataView().addFilter(chatMessage -> chatMessage.getText().contains(searchText));
+                    chatGrid.scrollToEnd();
+                }
+        );
     }
 
     private void send() {
