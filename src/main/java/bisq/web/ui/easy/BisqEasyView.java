@@ -204,7 +204,7 @@ public class BisqEasyView extends HorizontalLayout implements IBisqEasyView {
                             quoteBox.add(new Text(quote.getMessage()));
                         }
                 );
-        msgTag.add(new Text(message.getText()));
+        msgTag.add(new Text(messageText(message)));
         Div msgActions = UIUtils.create(new Div(), ret::add, "msgActions");
         Button replyButton = UIUtils.create(new Button(LineAwesomeIcon.REPLY_SOLID.create()), msgBorder::add, "replyButton");
         replyButton.addClickListener(event -> reply(message));
@@ -215,6 +215,10 @@ public class BisqEasyView extends HorizontalLayout implements IBisqEasyView {
         Button petzButton = UIUtils.create(new Button(LineAwesomeIcon.USER_GRADUATE_SOLID.create()), msgBorder::add, "petzButton");
         petzButton.addClickListener(event -> presenter.reportUser(message));
         return ret;
+    }
+
+    private String messageText(ChatMessage message) {
+        return message.getText() + (message.isWasEdited() ? " " + Res.get("social.message.wasEdited") : "");
     }
 
     protected void reply(ChatMessage message) {
