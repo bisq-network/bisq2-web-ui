@@ -7,6 +7,7 @@ import bisq.chat.trade.pub.PublicTradeChannel;
 import bisq.i18n.Res;
 import bisq.presentation.formatters.DateFormatter;
 import bisq.user.profile.UserProfile;
+import bisq.web.base.BisqContext;
 import bisq.web.base.MainLayout;
 import bisq.web.base.UIUtils;
 import com.vaadin.flow.component.Key;
@@ -209,6 +210,7 @@ public class BisqEasyView extends HorizontalLayout implements IBisqEasyView {
         Button replyButton = UIUtils.create(new Button(LineAwesomeIcon.REPLY_SOLID.create()), msgBorder::add, "replyButton");
         replyButton.addClickListener(event -> reply(message));
         Button privateButton = UIUtils.create(new Button(LineAwesomeIcon.COMMENT_ALT.create()), msgBorder::add, "privateButton");
+        privateButton.addClickListener(event -> presenter.openPrivateChat(message));
         Button ignoreButton = UIUtils.create(new Button(LineAwesomeIcon.USER_MINUS_SOLID.create()), msgBorder::add, "ignoreButton");
         Button petzButton = UIUtils.create(new Button(LineAwesomeIcon.USER_GRADUATE_SOLID.create()), msgBorder::add, "petzButton");
         return ret;
@@ -220,6 +222,7 @@ public class BisqEasyView extends HorizontalLayout implements IBisqEasyView {
         replyArea.setVisible(true);
         replyAuthor.setText(presenter.findAuthor(message).map(UserProfile::getNickName).orElse(""));
         replyMessage.setText(message.getText());
+        enterField.focus();
     }
 
     @Override
@@ -246,7 +249,9 @@ public class BisqEasyView extends HorizontalLayout implements IBisqEasyView {
 
     private void boxSelection() {
         tradeChannelBox.getOptionalValue().ifPresent(ch -> {
-            // add channel and select
+            // add channel
+            presenter.showChannel(ch);
+            // and select
             presenter.selectChannel(ch);
         });
         tradeChannelBox.setValue(null);

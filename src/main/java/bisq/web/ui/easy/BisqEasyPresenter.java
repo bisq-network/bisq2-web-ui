@@ -91,12 +91,19 @@ public class BisqEasyPresenter {
         return activeChannelProvider;
     }
 
+    public void openPrivateChat(ChatMessage message) {
+        // ref bisq.desktop.primary.main.content.components.ChatMessagesComponent.Controller.createAndSelectPrivateChannel()
+        findAuthor(message).ifPresent(author ->
+                BisqContext.get().getPrivateTradeChannelService().maybeCreateAndAddChannel(author) //
+                        .ifPresent(this::selectChannel));
+    }
+
     public void sendMessage(String text) {
         selectedChannel.ifPresent(channel -> {
             UserIdentity userIdentity = BisqContext.get().getUserIdentity();
             //            Optional<Quotation> quotation = quotedMessageBlock.getQuotation();
             SettingsService settingsService = BisqContext.get().getApplicationService().getSettingsService();
-            // bisq.desktop.primary.main.content.components.QuotedMessageBlock.getQuotation
+            // ref bisq.desktop.primary.main.content.components.QuotedMessageBlock.getQuotation
             Optional<Quotation> quotationOptional = Optional.ofNullable(replyMessage)//
                     .filter(msg -> StringUtils.isNotBlank(msg.getText())) //
                     .flatMap(this::findAuthor) //
@@ -117,12 +124,15 @@ public class BisqEasyPresenter {
     }
 
     public void selectChannel(Channel channel) {
+        if (selectedChannel.equals(Optional.ofNullable(channel))) {
+            return;
+        }
         if (selectedChannelPin != null) {
             selectedChannelPin.unbind();
         }
         selectedChannel = Optional.ofNullable(channel);
+        BisqContext.get().getTradeChannelSelectionService().selectChannel(channel);
         if (selectedChannel.isPresent()) {
-            showChannel(channel);
             selectedChannelPin = channel.getChatMessages().addChangedListener(
                     iBisqEasyView.pushCallBack(() -> {
                         chatMessageProvider.getItems().clear();
@@ -142,7 +152,7 @@ public class BisqEasyPresenter {
         return BisqContext.get().getUserIdentityService().isUserIdentityPresent(chatMessage.getAuthorId());
     }
 
-    void hideSelectedChannel() {
+    public void hideSelectedChannel() {
         selectedChannel.ifPresent(channel -> {
             if (selectedChannelPin != null) {
                 selectedChannelPin.unbind();
@@ -160,10 +170,9 @@ public class BisqEasyPresenter {
         });
     }
 
-    void showChannel(Channel ch) {
+    public void showChannel(Channel ch) {
         if (ch instanceof PublicTradeChannel) {
             BisqContext.get().getChatService().getPublicTradeChannelService().showChannel((PublicTradeChannel) ch);
-            BisqContext.get().getChatService().getPublicTradeChannelService().persist();
         }
     }
 }

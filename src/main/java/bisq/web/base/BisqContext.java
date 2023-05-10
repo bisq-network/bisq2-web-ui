@@ -3,6 +3,8 @@ package bisq.web.base;
 import bisq.application.DefaultApplicationService;
 import bisq.chat.ChatService;
 import bisq.chat.trade.TradeChannelSelectionService;
+import bisq.chat.trade.priv.PrivateTradeChannelService;
+import bisq.chat.trade.pub.PublicTradeChannel;
 import bisq.chat.trade.pub.PublicTradeChannelService;
 import bisq.user.identity.UserIdentity;
 import bisq.user.identity.UserIdentityService;
@@ -43,6 +45,10 @@ public class BisqContext {
 
     public PublicTradeChannelService getPublicTradeChannelService() {
         return getApplicationService().getChatService().getPublicTradeChannelService();
+    }
+
+    public PrivateTradeChannelService getPrivateTradeChannelService() {
+        return getApplicationService().getChatService().getPrivateTradeChannelService();
     }
 
     public ChatService getChatService() {
