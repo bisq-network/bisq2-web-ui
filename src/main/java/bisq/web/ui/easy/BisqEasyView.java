@@ -4,6 +4,7 @@ import bisq.chat.channel.Channel;
 import bisq.chat.message.ChatMessage;
 import bisq.chat.trade.priv.PrivateTradeChannel;
 import bisq.chat.trade.pub.PublicTradeChannel;
+import bisq.chat.trade.pub.PublicTradeChatMessage;
 import bisq.i18n.Res;
 import bisq.presentation.formatters.DateFormatter;
 import bisq.user.profile.UserProfile;
@@ -57,6 +58,7 @@ public class BisqEasyView extends HorizontalLayout implements IBisqEasyView {
     protected final Div replyAuthor;
     protected final Div replyMessage;
     protected final TextField searchField;
+    protected final Checkbox offerOnlyCheck;
     @Getter
     private BisqEasyPresenter presenter = new BisqEasyPresenter(this);
 
@@ -130,7 +132,8 @@ public class BisqEasyView extends HorizontalLayout implements IBisqEasyView {
         // header -----
         HorizontalLayout chatHeader = UIUtils.create(new HorizontalLayout(), chatColumn::add, "chatHeader");
         channelLabel = UIUtils.create(new Label(), chatHeader::add, "channelLabel");
-        Checkbox offerOnlyCheck = UIUtils.create(new Checkbox("Offers only"), chatHeader::add, "offerOnlyCheck");
+        offerOnlyCheck = UIUtils.create(new Checkbox("Offers only"), chatHeader::add, "offerOnlyCheck");
+        offerOnlyCheck.addClickListener(event -> offersOnly());
         searchField = UIUtils.create(new TextField(), chatHeader::add, "searchField");
         searchField.setPlaceholder("Search");//Res.get("search"));
         Button searchButton = new Button(LineAwesomeIcon.SEARCH_SOLID.create());
@@ -178,14 +181,26 @@ public class BisqEasyView extends HorizontalLayout implements IBisqEasyView {
         sendButton.addClickListener(ev -> send());
     }
 
+    private void offersOnly() {
+        chatGrid.getListDataView().removeFilters();
+        searchField.setValue("");
+        offerOnlyCheck.getOptionalValue() //
+                .filter(showOnlyOffers -> showOnlyOffers)
+                .ifPresent(showOnlyOffers ->
+                        chatGrid.getListDataView().addFilter(chatMessage ->
+                                (chatMessage instanceof PublicTradeChatMessage) && ((PublicTradeChatMessage) chatMessage).isOfferMessage())
+                );
+        chatGrid.scrollToEnd();
+    }
+
     private void searchMessages() {
         chatGrid.getListDataView().removeFilters();
+        offerOnlyCheck.setValue(false);
         searchField.getOptionalValue().ifPresent(
-                searchText -> {
-                    chatGrid.getListDataView().addFilter(chatMessage -> chatMessage.getText().contains(searchText));
-                    chatGrid.scrollToEnd();
-                }
+                searchText ->
+                        chatGrid.getListDataView().addFilter(chatMessage -> chatMessage.getText().contains(searchText))
         );
+        chatGrid.scrollToEnd();
     }
 
     private void send() {
