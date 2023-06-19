@@ -26,7 +26,7 @@
 }
 
 .nameTag {
-    font-size: var(--lumo-font-size-s);
+    font-size: var(--lumo-font-size);
     color: var(--bisq-white);
     margin: 4px 12px;
 }
@@ -42,7 +42,7 @@
     padding: 15px;
     width: unset;
     border-radius: 8px;
-    font-size: var(--lumo-font-size-xl);
+    font-size: var(--lumo-font-size);
     color: var(--bisq-white);
 }
 
@@ -62,7 +62,6 @@
 
 .channelLabel {
     flex: 1;
-    padding-top: 12px;
     font-family: 'IBM Plex Sans Medium';
 }
 
@@ -138,6 +137,18 @@
 }
 
 .searchField {
+    background: var(--bisq-grey-2);
+}
+
+.searchField * {
+    background: var(--bisq-grey-2);
+}
+
+.searchField vaadin-input-container {
+    background: var(--bisq-grey-2);
+}
+
+.searchField vaadin-button {
     background: var(--bisq-grey-2);
 }
 
