@@ -1,9 +1,8 @@
 package bisq.web.ui.easy;
 
 import bisq.user.identity.UserIdentity;
-import bisq.web.base.BisqContext;
 import bisq.web.base.MainLayout;
-import bisq.web.base.UIUtils;
+import bisq.web.util.UIUtils;
 import bisq.web.bo.GenerateUser;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
@@ -19,7 +18,6 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouteAlias;
 import lombok.extern.slf4j.Slf4j;
 
-import javax.swing.text.Utilities;
 import java.util.Optional;
 
 @Route(value = "intro", layout = MainLayout.class)

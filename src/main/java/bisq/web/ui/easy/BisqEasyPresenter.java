@@ -8,10 +8,13 @@ import bisq.chat.trade.pub.PublicTradeChannel;
 import bisq.chat.trade.pub.PublicTradeChannelService;
 import bisq.common.observable.ObservableArray;
 import bisq.common.observable.Pin;
+import bisq.i18n.Res;
 import bisq.settings.SettingsService;
+import bisq.support.SupportService;
 import bisq.user.identity.UserIdentity;
 import bisq.user.profile.UserProfile;
 import bisq.web.base.BisqContext;
+import bisq.web.util.Popup;
 import com.vaadin.flow.data.provider.ListDataProvider;
 import lombok.Getter;
 import lombok.Setter;
@@ -109,8 +112,17 @@ public class BisqEasyPresenter {
     public void openPrivateChat(ChatMessage message) {
         // ref bisq.desktop.primary.main.content.components.ChatMessagesComponent.Controller.createAndSelectPrivateChannel()
         findAuthor(message).ifPresent(author ->
-                BisqContext.get().getPrivateTradeChannelService().maybeCreateAndAddChannel(author) //
-                        .ifPresent(this::selectChannel));
+                selectChannel(choosePrivateTradeChannel(author))
+        );
+
+    }
+
+    private PrivateTradeChannel choosePrivateTradeChannel(UserProfile peersUserProfile) {
+        UserIdentity myUserIdentity = BisqContext.get().getUserIdentity();
+
+        SupportService supportService = BisqContext.get().getApplicationService().getSupportService();
+        Optional<UserProfile> mediatorOpt = supportService.getMediationService().selectMediator(myUserIdentity.getUserProfile().getId(), peersUserProfile.getId());
+        return BisqContext.get().getPrivateTradeChannelService().traderCreatesNewChannel(myUserIdentity, peersUserProfile, mediatorOpt);
     }
 
     public void sendMessage(String text) {
@@ -175,6 +187,11 @@ public class BisqEasyPresenter {
             if (channel instanceof PublicTradeChannel) {
                 BisqContext.get().getPublicTradeChannelService().hidePublicTradeChannel((PublicTradeChannel) channel);
                 BisqContext.get().getPublicTradeChannelService().persist();
+            }
+            if (channel instanceof PrivateTradeChannel) {
+                PrivateTradeChannel privateTradeChannel = (PrivateTradeChannel) channel;
+                BisqContext.get().getPrivateTradeChannelService().leaveChannel(privateTradeChannel);
+                // persist is done by leaveChannel
             }
             activeChannelProvider.getItems().remove(channel);
             activeChannelProvider.refreshAll();

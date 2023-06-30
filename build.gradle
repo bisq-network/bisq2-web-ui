@@ -66,6 +66,7 @@ dependencies {
     implementation('bisq:chat')
     implementation('bisq:presentation')
     implementation('bisq:application')
+    implementation('bisq:support')
 
     // logging
     // currently we are logging through the SLF4J API to SLF4J-Simple. See src/main/resources/simplelogger.properties file for the logger configuration

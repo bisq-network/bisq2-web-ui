@@ -2,14 +2,17 @@ package bisq.web.ui.easy;
 
 import bisq.chat.channel.Channel;
 import bisq.chat.message.ChatMessage;
+import bisq.chat.message.Quotation;
 import bisq.chat.trade.priv.PrivateTradeChannel;
 import bisq.chat.trade.pub.PublicTradeChannel;
 import bisq.chat.trade.pub.PublicTradeChatMessage;
 import bisq.i18n.Res;
 import bisq.presentation.formatters.DateFormatter;
 import bisq.user.profile.UserProfile;
+import bisq.web.base.BisqContext;
 import bisq.web.base.MainLayout;
-import bisq.web.base.UIUtils;
+import bisq.web.util.Popup;
+import bisq.web.util.UIUtils;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.UI;
@@ -232,6 +235,7 @@ public class BisqEasyView extends HorizontalLayout implements IBisqEasyView {
         UIUtils.create(new Span(date), nameTag::add, "messDate");
         Div msgTag = UIUtils.create(new Div(), msgBorder::add, "msgTag");
         message.getQuotation() //
+                .filter(Quotation::isValid) //
                 .ifPresent(quote -> {
                             //quoteBox
                             Div quoteBox = UIUtils.create(new Div(), msgTag::add, "quoteBox");
@@ -284,8 +288,19 @@ public class BisqEasyView extends HorizontalLayout implements IBisqEasyView {
     }
 
     private void hideChannel() {
-        presenter.hideSelectedChannel();
-        tradeChannelBox.setVisible(false);
+        if (presenter.getSelectedChannel().isPresent() && presenter.getSelectedChannel().get() instanceof PrivateTradeChannel) {
+            PrivateTradeChannel privateTradeChannel = (PrivateTradeChannel) presenter.getSelectedChannel().get();
+
+            new Popup().warning(Res.get("social.privateChannel.leave.warning",//
+                            privateTradeChannel.getMyUserIdentity().getUserName())) //
+                    .cancelButton() //
+                    .actionText(Res.get("social.privateChannel.leave")) //
+                    .onAction(presenter::hideSelectedChannel)
+                    .show();
+        } else {
+            presenter.hideSelectedChannel();
+            tradeChannelBox.setVisible(false);
+        }
     }
 
     private void boxSelection() {

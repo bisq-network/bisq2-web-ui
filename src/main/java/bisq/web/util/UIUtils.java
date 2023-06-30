@@ -1,4 +1,4 @@
-package bisq.web.base;
+package bisq.web.util;
 
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.ComponentEventListener;
@@ -93,53 +93,6 @@ public class UIUtils {
         } catch (NullPointerException e) {
             return def;
         }
-    }
-
-    public static Dialog errorDialog(String msg) {
-        return errorDialog("An Error occurred at " + Instant.now(), msg);
-    }
-
-    public static Dialog errorDialog(String title, String msg) {
-        Button closeButton = new Button("Close");
-        Dialog note = dialog(title, msg, closeButton);
-        closeButton.addClickListener(ev -> note.close());
-        return note;
-    }
-
-    public static Dialog dialog(String title, String msg, Button... buttons) {
-        Dialog note = new Dialog();// msg, 0, Position.MIDDLE);
-        note.setCloseOnEsc(true);
-        note.setDraggable(true);
-        note.setCloseOnOutsideClick(false);
-        note.setModal(true);
-
-        Div titleText = new Div();
-        titleText.add(title);
-        titleText.getStyle().set("color", "red");
-        note.add(titleText);
-        note.add(new Hr());
-        note.add(new Text(msg));
-        HorizontalLayout bbar = new HorizontalLayout(buttons);
-        bbar.setJustifyContentMode(JustifyContentMode.END);
-        bbar.setWidthFull();
-        bbar.getStyle().set("margin-top", "20px");
-        note.add(bbar);
-        note.open();
-        return note;
-
-    }
-
-    public static Dialog confirmDialog(String title, String msg, Runnable confirmAction) {
-        Button closeButton = new Button("Cancel");
-        Button ok = new Button("Ok");
-        Dialog note = dialog(title, msg, ok, closeButton);
-        closeButton.addClickListener(ev -> note.close());
-
-        ok.addClickListener(ev -> {
-            confirmAction.run();
-            note.close();
-        });
-        return note;
     }
 
     public static <R, T extends Collection<R>> Stream<R> ex2EmptyStream(Supplier<T> streamSupplier) {

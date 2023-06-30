@@ -1,5 +1,7 @@
 .replyArea {
     width: 100%;
+    background-color: var(--bisq-black);
+    padding: 20px 10px 20px 10px;
 }
 
 .replyHeader {
@@ -63,6 +65,8 @@
 .channelLabel {
     flex: 1;
     font-family: 'IBM Plex Sans Medium';
+    font-size: larger;
+    color: var(--bisq-white);
 }
 
 .marketLabel {
@@ -137,7 +141,8 @@
 }
 
 .searchField {
-    background: var(--bisq-grey-2);
+    background: var(--bisq-black);
+    padding: 0;
 }
 
 .searchField * {
@@ -162,4 +167,23 @@
 
 .messageLayout {
     width: 100%;
+}
+
+.quoteBox {
+    background: var(--bisq-grey-5);
+    padding: 10px 10px 10px 15px;
+    border-color: var(--bisq-grey-dimmed);
+    border-width: 0 0 0 3px;
+    border-radius: 0 8px 8px 0;
+    border-left-style: solid;
+    color: var(--bisq-grey-dimmed);
+    margin-bottom: 10px;
+}
+
+.quoteAuthor {
+    color: var(--bisq-grey-10);
+}
+
+.replyAuthor {
+    color: var(--bisq-grey-10);
 }
