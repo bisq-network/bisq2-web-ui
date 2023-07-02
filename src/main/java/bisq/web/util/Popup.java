@@ -8,6 +8,10 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+/**
+ * Popup for user Notification
+ * user for warnings, errors, Infos
+ */
 public class Popup extends Dialog {
 
     Button actionButton;
