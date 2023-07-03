@@ -1,72 +1,44 @@
-# Vaadin Gradle Skeleton Starter
+# Bisq2 Web UI
 
-This project demos the possibility of having Vaadin project in npm+webpack mode using Gradle.
-Please see the [Starting a Vaadin project using Gradle](https://vaadin.com/docs/latest/guide/start/gradle) for the
-documentation.
+## What this project is about
 
-Prerequisites:
+This is a subproject from Bisq2. It adds a web-ui to the project so Bisq2 can be used inside a browser. Target is that this project can be installed on Personal Node like Start9, Umbrel,... or any selfhosted server. The user shall be able to access the Node through a browser.
 
-* Java 8 or higher
-* node.js and npm. You can either let the Vaadin Gradle plugin to install `nodejs` and `npm/pnpm` for you automatically,
-  or you can install it to your OS:
-    * Windows: [node.js Download site](https://nodejs.org/en/download/) - use the .msi 64-bit installer
-    * Linux: `sudo apt install npm`
-* Git
-* (Optionally): Intellij Ultimate
+The web-ui is an option besides the desktop UI but not a replacement. Its intended to have a scaled down version of the desktop UI with fewer bells and whistles. 
 
-## Building In Production Mode
+## How to run it
+Bisq2 Web UI is a standard JEE web project. To see the full interaction, you will need to start up more than one node to form a small Bisq network. Actually you need:
+- 2 seed nodes, which tell the client where to find other clients.
+- one or more desktop clients
+- and this web app as second client.
 
-Simply run the following command in this repo:
+Actually the desktop client may access the publicly available price nodes as well, but they are not necessary to run the web ui.
 
-```bash
-./gradlew clean build -Pvaadin.productionMode
-```
+## Prerequisites
+- Java 11 or higher
+- Tomcat 9 or higher
+- Gradle 7.5
+- Git (obviously)
+- (Optionally): Intellij Ultimate
 
-That will build this app in production mode as a WAR archive; please find the
-WAR file in `build/libs/base-starter-gradle.war`. You can run the WAR file
-by using [Jetty Runner](https://mvnrepository.com/artifact/org.eclipse.jetty/jetty-runner):
-
-```bash
-cd build/libs/
-wget https://repo1.maven.org/maven2/org/eclipse/jetty/jetty-runner/9.4.26.v20200117/jetty-runner-9.4.26.v20200117.jar
-java -jar jetty-runner-9.4.26.v20200117.jar base-starter-gradle.war
-```
-
-Now you can open the [http://localhost:8080](http://localhost:8080) with your browser.
-
-### Building In Production On CI
-
-Usually the CI images will not have node.js+npm available. Luckily Vaadin will download `nodejs` and `npm/pnpm`
-automatically, there is nothing you need to do.
-To build your app for production in CI, just run:
+### Running/Debugging In Intellij Ultimate With Tomcat in Development Mode
+- Download and unpack the newest [Tomcat 9](https://tomcat.apache.org/download-90.cgi).
+- Open this project in Intellij Ultimate.
+- In the subdirectory <$PROJECT-DIR>/.run there are several Run-configurations for your convenience. In Intellij Ultimate, in the 'Select Run/Debug Configuration' start a seed node and wait until it compiles and has started. then start the other seed node and the desktop client and web ui project configuration.
+- point your browser to http://localhost:8080
+### Manually setting up a web container and building a war file
+The Bisq2 sourcecode is downloaded into the subdirectory <$PROJECT-DIR>/bisq. There is a description on how to set up Bisq2 with seednodes and desktop clients in <$PROJECT-DIR>/bisq/README.md
+To build a war file you can run the gradle target 
 
 ```bash
-./gradlew clean build -Pvaadin.productionMode
+./gradlew war
 ```
+Then deploy the resulting war-file in any JEE compliant web container, like Tomcat, Jetty,...
 
-## Running/Debugging In Intellij Ultimate With Tomcat in Development Mode
+Point your browser to http://localhost:8080
 
-* Download and unpack the newest [Tomcat 9](https://tomcat.apache.org/download-90.cgi).
-* Open this project in Intellij Ultimate.
-* Click "Edit Launch Configurations", click "Add New Configuration" (the upper-left button which looks like a plus
-  sign `+`), then select Tomcat Server, Local.
-  In the Server tab, the Application Server will be missing, click the "Configure" button and point Intellij to the
-  Tomcat directory.
-    * Still in the launch configuration, in the "Deployment" tab, click the upper-left + button, select "Artifact" and
-      select `base-starter-gradle.war (exploded)`.
-    * Still in the launch configuration, name the configuration "Tomcat" and click the "Ok" button.
+## How to contribute
 
-Now make sure Vaadin is configured to be run in development mode - run:
+Contribution are always welcome. If you read through this doc already, you are probably a Java dev and we are looking for your help. Best way is to meet us at our [Matrix room](https://matrix.to/#/#bisq.v2.dev:bitcoin.kyoto) . 
 
-```bash
-./gradlew clean vaadinPrepareFrontend
-```
-
-* Select the "Tomcat" launch configuration and hit Debug (the green bug button).
-
-If Tomcat fails to start with `Error during artifact deployment. See server log for details.`, please:
-
-* Go and vote for [IDEA-178450](https://youtrack.jetbrains.com/issue/IDEA-178450).
-* Then, kill Tomcat by pressing the red square button.
-* Then, open the launch configuration, "Deployment", remove the (exploded) war, click `+` and
-  select `base-starter-gradle.war`.
+If you find any error in this document or have problems following it, please let us know so we can improve it. And maybe fixing this doc could be your first contributing?!
