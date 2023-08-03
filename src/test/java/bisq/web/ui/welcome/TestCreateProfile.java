@@ -8,7 +8,7 @@ import bisq.security.pow.ProofOfWorkService;
 import bisq.user.NymIdGenerator;
 import bisq.user.identity.UserIdentity;
 import bisq.web.base.BisqContext;
-import bisq.web.bo.GenerateUser;
+import bisq.web.bo.ProfileBean;
 import ch.qos.logback.classic.LoggerContext;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
@@ -86,7 +86,7 @@ public class TestCreateProfile {
         System.setProperty("application.network.seedAddressByTransportType.clear.1", "127.0.0.1:8001");
 //        System.setProperty("","");
         BisqContext.startP2PNetwork("--appName=bisq2_test");
-        GenerateUser generateUser = new GenerateUser();
+        ProfileBean generateUser = new ProfileBean();
         Optional<UserIdentity> userIdentityOptional = generateUser.selectedUser();
         UserIdentity userIdentity = userIdentityOptional.orElseGet(() ->
                 generateUser.setNickname("nickname234").generateUser().join()

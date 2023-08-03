@@ -1,0 +1,38 @@
+/*******************************************************************************
+ *                                                                             *
+ * Outlined-Button                                                                  *
+ *                                                                             *
+ ******************************************************************************/
+
+.outlined-button {
+    background-color: transparent;
+    border-color: var(--bisq-green);
+    border-width: 1px;
+    border-radius: 4px;
+    border-style: solid;
+    color: var(--bisq-green);
+    font-size: 1em;
+    padding: 5px 32px 5px 32px;
+    cursor: pointer;
+}
+
+.outlined-button:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+    text-effect: none;
+}
+
+
+.outlined-button:active {
+    background-color: rgba(255, 255, 255, 0.025);
+    border-color: var(--bisq-green-darker);
+    color: var(--bisq-green-darker);
+    text-effect: none;
+}
+
+.outlined-button:disabled {
+    /*   -fx-background-color: transparent;
+       -fx-border-color: rgba(255, 255, 255, 0.2);
+       -fx-text-fill: derive(-fx-light-text-color, -20%);
+
+     */
+}

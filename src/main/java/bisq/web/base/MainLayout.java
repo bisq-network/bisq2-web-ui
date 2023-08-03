@@ -2,6 +2,7 @@ package bisq.web.base;
 
 import bisq.chat.trade.pub.PublicTradeChannel;
 import bisq.common.observable.ObservableArray;
+import bisq.web.ui.admin.UserProfileView;
 import bisq.web.ui.easy.BisqEasyView;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.HasElement;
@@ -30,19 +31,16 @@ public class MainLayout extends VerticalLayout implements RouterLayout, AppShell
         addClassName("MainLayout");
         HorizontalLayout topBar = new HorizontalLayout();
         topBar.addClassName("topBar");
-//        add(topBar, createmenue());
+        add(topBar, createmenue());
     }
 
     public MenuBar createmenue() {
         MenuBar menu = new MenuBar();
-        entry(menu, "Dashboard", TBD.class);
         SubMenu tradeApps = menu.addItem("Trade Apps").getSubMenu();
-//        SubMenu bisqEasy = tradeApps.addItem("Bisq Easy").getSubMenu();
-//        menuTradeChannels(bisqEasy);
-        entry(tradeApps, "Bisq Easy", BisqEasyView.class);
-        entry(tradeApps, "Liquid Swaps", TBD.class);
-        entry(tradeApps, "Bisq Multisig", TBD.class);
+        entry(tradeApps, BisqEasyView.NAME, BisqEasyView.class);
 
+        SubMenu settings = menu.addItem("Settings").getSubMenu();
+        entry(settings, UserProfileView.NAME, UserProfileView.class);
 
         return menu;
     }
@@ -63,6 +61,9 @@ public class MainLayout extends VerticalLayout implements RouterLayout, AppShell
 
 
     public HasMenuItems entry(HasMenuItems bar, String name, Class<? extends Component> navTarget) {
+        if (name.endsWith("View")) {
+            name = name.replace("View", "");
+        }
         bar.addItem(name, e -> {
             UI.getCurrent().navigate(navTarget);
         });

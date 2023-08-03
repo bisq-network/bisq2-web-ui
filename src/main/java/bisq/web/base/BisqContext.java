@@ -4,21 +4,26 @@ import bisq.application.DefaultApplicationService;
 import bisq.chat.ChatService;
 import bisq.chat.trade.TradeChannelSelectionService;
 import bisq.chat.trade.priv.PrivateTradeChannelService;
-import bisq.chat.trade.pub.PublicTradeChannel;
 import bisq.chat.trade.pub.PublicTradeChannelService;
 import bisq.user.identity.UserIdentity;
 import bisq.user.identity.UserIdentityService;
 import bisq.user.profile.UserProfileService;
+import bisq.user.reputation.ProfileAgeService;
 import lombok.Getter;
+import lombok.Setter;
 
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
 
 public class BisqContext {
 
     static BisqContext instance = new BisqContext();
     @Getter
-    DefaultApplicationService applicationService;
+    protected DefaultApplicationService applicationService;
+    @Getter
+    @Setter
+    protected Function<Runnable, Runnable> uiThreadRunner;
 
     public BisqContext() {
     }
@@ -78,4 +83,20 @@ public class BisqContext {
     public void setUserFuture(CompletableFuture<UserIdentity> userFuture) {
         this.userFutureOpt = Optional.ofNullable(userFuture);
     }
+
+    public ProfileAgeService getProfileAgeService() {
+        return getApplicationService().getUserService().getReputationService().getProfileAgeService();
+    }
+
+    /**
+     * Use this if you need to execute code from backend in the UI. Threads will most likely not be the same!
+     *
+     * @param r
+     * @return
+     */
+    public Runnable runInUIThread(Runnable r) {
+        return uiThreadRunner.apply(r);
+    }
+
+
 }
