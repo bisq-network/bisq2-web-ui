@@ -1,26 +1,22 @@
 package bisq.web.util;
 
+import bisq.common.observable.ObservableSet;
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.ComponentEventListener;
 import com.vaadin.flow.component.HasStyle;
-import com.vaadin.flow.component.Text;
-import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.dialog.Dialog;
-import com.vaadin.flow.component.html.Div;
-import com.vaadin.flow.component.html.Hr;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
-import com.vaadin.flow.component.orderedlayout.FlexComponent.JustifyContentMode;
-import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.data.provider.ListDataProvider;
 import com.vaadin.flow.server.StreamResource;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.event.EventListenerSupport;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.net.URL;
 import java.text.DateFormat;
-import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -161,4 +157,13 @@ public class UIUtils {
             return null;
         });
     }
+
+    public static <T> ListDataProvider<T> providerFrom(ObservableSet<T> observableSet, EventListenerSupport<Consumer<T>> detailListener) {
+        ListDataProvider<T> provider = new ListDataProvider<>(observableSet);
+        final UI ui = UI.getCurrent();
+        observableSet.addChangedListener(() -> ui.access(provider::refreshAll));
+        detailListener.addListener(t -> ui.access(() -> provider.refreshItem((T) t)));
+        return provider;
+    }
+
 }

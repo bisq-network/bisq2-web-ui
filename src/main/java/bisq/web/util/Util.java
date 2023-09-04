@@ -5,6 +5,8 @@ import bisq.common.observable.ObservableSet;
 import bisq.web.base.BisqContext;
 import com.vaadin.flow.data.provider.ListDataProvider;
 
+import java.util.function.Function;
+
 public class Util {
 
     public static <T> ListDataProvider<T> observable2ListProvider(ObservableArray<T> observableSet) {
@@ -19,4 +21,12 @@ public class Util {
         return provider;
     }
 
+    public static <T, R> R nullSafe(T t, Function<T, R> fun) {
+        if (t == null) {
+            return null;
+        } else {
+            return fun.apply(t);
+        }
+
+    }
 }

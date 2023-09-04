@@ -127,6 +127,4 @@ public class ProfileBean {
             BisqContext.get().getUserIdentityService().editUserProfile(userIdentity, terms, statement);
         }
     }
-
-
 }

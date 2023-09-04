@@ -2,10 +2,12 @@ package bisq.web.ui.admin;
 
 import bisq.i18n.Res;
 import bisq.user.identity.UserIdentity;
+import bisq.web.base.BisqContext;
 import bisq.web.base.MainLayout;
 import bisq.web.bo.ProfileBean;
 import bisq.web.util.Popup;
 import bisq.web.util.UIUtils;
+import bisq.web.util.Util;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.formlayout.FormLayout;
@@ -15,6 +17,7 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.select.Select;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.binder.Binder;
+import com.vaadin.flow.data.provider.ListDataProvider;
 import com.vaadin.flow.router.Route;
 import lombok.Getter;
 
@@ -38,6 +41,7 @@ public class UserProfileView extends Div {
     protected final Select<UserIdentity> profileSelection;
 
     public UserProfileView() {
+        presenter = new UserProfilePresenter();
         addClassName(NAME);
         UIUtils.create(new H1("User Profile"), this::add, "header");
         FormLayout formLayout = UIUtils.create(new FormLayout(), this::add, "formLayout");
@@ -49,12 +53,12 @@ public class UserProfileView extends Div {
         profileSelection.setItemLabelGenerator(UserIdentity::getNickName);
         profileSelection.addValueChangeListener(ev -> {
             if (ev.isFromClient()) {
-                selectProfile(new ProfileBean().loadFromIdentity(ev.getValue()));
+                getPresenter().selectProfile(new ProfileBean().loadFromIdentity(ev.getValue()));
             }
         });
 
         Button createButton = UIUtils.create(new Button(Res.get("settings.userProfile.createNewProfile")), selectBar::add, "createButton outlined-button");
-        createButton.addClickListener(ev -> createNewProfile());
+        createButton.addClickListener(ev -> presenter.createNewProfile());
 
 
         nicknameField = UIUtils.create(new TextField(Res.get("social.chatUser.nickName")), formLayout::add, "nicknameField");
@@ -90,43 +94,39 @@ public class UserProfileView extends Div {
 
         deleteButton = UIUtils.create(new Button(Res.get("settings.userProfile.deleteProfile")), buttonBar::add, "deleteButton");
         deleteButton.addClickListener(ev -> delete());
-        profileSelection.setItems(getPresenter().getProfileProvider());
-        deleteButton.setEnabled(getPresenter().userIdentities.size() > 1);
+        ListDataProvider<UserIdentity> profilesProvider = UIUtils.providerFrom(getPresenter().createUserIdentityProvider(), getPresenter().getProfileDetailsChangedEvent());
+        profileSelection.setItems(profilesProvider);
+        // hide delete button iff only one left.
+        getPresenter().getUserIdentities().addChangedListener(BisqContext.get().runInUIThread(() -> deleteButton.setEnabled(getPresenter().userIdentities.size() > 1)));
+
+        getPresenter().getProfileOb().addObserver(profile -> BisqContext.get().runInUIThread(() -> loadProfile(profile)).run());
+        getPresenter().getProfileDetailsChangedEvent().addListener(ident -> BisqContext.get().runInUIThread(() -> loadUserIdentity(ident)).run());
+        getPresenter().selectProfile(new ProfileBean().loadFromIdentity(
+                BisqContext.get().getUserIdentityService().getSelectedUserIdentity().get()));
+    }
+
+    private void loadProfile(ProfileBean profile) {
+        binder.readBean(profile);
+        loadUserIdentity(Util.nullSafe(profile, ProfileBean::getUserIdentity));
+    }
+
+    private void loadUserIdentity(UserIdentity ident) {
+        profileSelection.setValue(ident);
+        nicknameField.setVisible(ident == null);
     }
 
     public void save() {
-        ProfileBean profile = getPresenter().getSelectedProfile();
+        ProfileBean profile = getPresenter().getProfileOb().get();
         if (binder.writeBeanIfValid(profile)) {
             getPresenter().saveProfile();
         }
     }
 
-    private void createNewProfile() {
-        selectProfile(new ProfileBean().prepareUserGeneration());
-        nicknameField.setVisible(true);
-    }
-
     private void delete() {
         new Popup().warning(Res.get("settings.userProfile.deleteProfile.warning"))
-                .onAction(() -> doDelete())
+                .onAction(getPresenter()::deleteProfile)
                 .actionText(Res.get("settings.userProfile.deleteProfile.warning.yes"))
                 .cancelButton()
                 .show();
-
-    }
-
-    public void doDelete() {
-        getPresenter().deleteProfile();
-        UserIdentity identity = getPresenter().getUserIdentities().iterator().next();
-        selectProfile(new ProfileBean().loadFromIdentity(identity));
-        deleteButton.setEnabled(getPresenter().getUserIdentities().size() > 1);
-
-    }
-
-    protected void selectProfile(ProfileBean profile) {
-        getPresenter().selectProfile(profile);
-        binder.readBean(profile);
-        profileSelection.setValue(profile.getUserIdentity());
-        nicknameField.setVisible(false);
     }
 }

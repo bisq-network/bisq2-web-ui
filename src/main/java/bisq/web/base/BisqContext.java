@@ -9,22 +9,17 @@ import bisq.user.identity.UserIdentity;
 import bisq.user.identity.UserIdentityService;
 import bisq.user.profile.UserProfileService;
 import bisq.user.reputation.ProfileAgeService;
+import com.vaadin.flow.component.UI;
 import lombok.Getter;
-import lombok.Setter;
 
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Function;
 
 public class BisqContext {
 
     static BisqContext instance = new BisqContext();
     @Getter
     protected DefaultApplicationService applicationService;
-    @Getter
-    @Setter
-    protected Function<Runnable, Runnable> uiThreadRunner;
-
     public BisqContext() {
     }
 
@@ -95,7 +90,8 @@ public class BisqContext {
      * @return
      */
     public Runnable runInUIThread(Runnable r) {
-        return uiThreadRunner.apply(r);
+        final UI ui = UI.getCurrent();
+        return () -> ui.access(() -> r.run());
     }
 
 

@@ -8,20 +8,21 @@ import bisq.chat.trade.pub.PublicTradeChannel;
 import bisq.chat.trade.pub.PublicTradeChannelService;
 import bisq.common.observable.ObservableArray;
 import bisq.common.observable.Pin;
-import bisq.i18n.Res;
 import bisq.settings.SettingsService;
 import bisq.support.SupportService;
 import bisq.user.identity.UserIdentity;
 import bisq.user.profile.UserProfile;
 import bisq.web.base.BisqContext;
-import bisq.web.util.Popup;
 import com.vaadin.flow.data.provider.ListDataProvider;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -90,7 +91,7 @@ public class BisqEasyPresenter {
 
     protected <T> ListDataProvider<T> observableSet2ListProvider(ObservableArray<T> observableSet) {
         ListDataProvider<T> provider = new ListDataProvider<>(observableSet);
-        observableSet.addChangedListener(iBisqEasyView.pushCallBack(provider::refreshAll));
+        observableSet.addChangedListener(BisqContext.get().runInUIThread(provider::refreshAll));
         return provider;
     }
 
@@ -98,7 +99,7 @@ public class BisqEasyPresenter {
         PublicTradeChannelService publicTradeChannelService = BisqContext.get().getPublicTradeChannelService();
         activeChannelProvider = new ListDataProvider<>(visibleChannels);
 
-        publicTradeChannelService.getVisibleChannelNames().addChangedListener(iBisqEasyView.pushCallBack(() -> {
+        publicTradeChannelService.getVisibleChannelNames().addChangedListener(BisqContext.get().runInUIThread(() -> {
             visibleChannels.clear(); // unfortunately this must be final
             publicTradeChannelService.getChannels().stream() //
                     .sorted(Comparator.comparing(PublicTradeChannel::getDisplayString)) //
@@ -161,7 +162,7 @@ public class BisqEasyPresenter {
         BisqContext.get().getTradeChannelSelectionService().selectChannel(channel);
         if (selectedChannel.isPresent()) {
             selectedChannelPin = channel.getChatMessages().addChangedListener(
-                    iBisqEasyView.pushCallBack(() -> {
+                    BisqContext.get().runInUIThread(() -> {
                         chatMessageProvider.getItems().clear();
                         chatMessageProvider.getItems().addAll(channel.getChatMessages());
                         chatMessageProvider.refreshAll();

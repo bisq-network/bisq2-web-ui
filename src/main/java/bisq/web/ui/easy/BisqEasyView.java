@@ -14,7 +14,6 @@ import bisq.web.util.Popup;
 import bisq.web.util.UIUtils;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.Text;
-import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.ComboBox;
@@ -315,10 +314,4 @@ public class BisqEasyView extends HorizontalLayout implements IBisqEasyView {
         tradeChannelBox.setValue(null);
         tradeChannelBox.setVisible(false);
     }
-
-    @Override
-    public Runnable pushCallBack(Runnable command) {
-        return () -> UI.getCurrent().access(() -> command.run()); //avoiding dependency to vaadin command
-    }
-
 }
