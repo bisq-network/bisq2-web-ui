@@ -27,7 +27,7 @@ public class SetupFilter implements Filter {
         final String sessionId = session == null ? null : session.getId();
         MDC.put("session-ID", sessionId);
 
-        // Setup for trnslation (to translation into which language)
+        // Setup for translation (to translation into which language)
         Res.setLocale(req.getLocale());
 
         chain.doFilter(request, response);
