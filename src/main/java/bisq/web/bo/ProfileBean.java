@@ -13,13 +13,14 @@ import lombok.experimental.Accessors;
 import java.security.KeyPair;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Consumer;
 
 /**
- * this aids in creating a new user.
+ * this aids in creating a new user and profile
  */
 @Accessors(chain = true)
-public class GenerateUser {
+public class ProfileBean {
+    public static final String N_A = "N/A";
+    @Getter
     protected String nym;
     protected CompletableFuture<ProofOfWork> proofOfWorkFuture;
     protected KeyPair keyPair;
@@ -31,14 +32,18 @@ public class GenerateUser {
     protected String terms = "";
     @Getter
     @Setter
-    protected String bio = "";
+    protected String statement = "";
+    @Getter
+    protected String userId;
+    @Getter
+    protected UserIdentity userIdentity;
 
     /**
      * this must be called before a User can be generated. It starts the ProoOfWork in the background already.
      *
      * @return
      */
-    public GenerateUser init() {
+    public ProfileBean prepareUserGeneration() {
         keyPair = BisqContext.get().getApplicationService().getKeyPairService().generateKeyPair();
         ProofOfWorkService proofOfWorkService = BisqContext.get().getApplicationService().getSecurityService().getProofOfWorkService();
         byte[] pubKeyHash = pubKeyHash(keyPair);
@@ -55,7 +60,7 @@ public class GenerateUser {
         final CompletableFuture<UserIdentity> userFuture;
         synchronized (this) {
             userFuture = BisqContext.get().getUserIdentityService().createAndPublishNewUserProfile(
-                            nickname, nym, keyPair, proofOfWorkFuture.join(), terms, bio) //
+                            nickname, nym, keyPair, proofOfWorkFuture.join(), terms, statement) //
                     .thenApply(userIdent -> {
                         BisqContext.get().getUserIdentityService().persist().join();
                         return userIdent;
@@ -77,11 +82,49 @@ public class GenerateUser {
     public Optional<UserIdentity> selectedUser() {
         UserIdentity userIdentity = BisqContext.get().getUserIdentityService().getSelectedUserIdentity().get();
         if (userIdentity == null) {
-            init();
+            prepareUserGeneration();
             return Optional.empty();
         } else {
             return Optional.of(userIdentity);
         }
     }
 
+    public ProfileBean loadFromIdentity(UserIdentity userIdentity) {
+        this.userIdentity = userIdentity;
+        nym = userIdentity.getNym();
+        userId = userIdentity.getId();
+        statement = userIdentity.getUserProfile().getStatement();
+
+        terms = userIdentity.getUserProfile().getTerms();
+        nickname = userIdentity.getNickName();
+
+        return this;
+    }
+
+    public String getProfileAge() {
+        if (userIdentity == null) {
+            return N_A;
+        }
+        return BisqContext.get().getProfileAgeService().getProfileAge(userIdentity.getUserProfile()) //
+                .map(String::valueOf) //
+                .orElse(N_A);
+    }
+
+    public String getReputationScore() {
+        if (userIdentity == null) {
+            return N_A;
+        }
+        return String.valueOf( //
+                BisqContext.get().getApplicationService().getUserService().getReputationService() //
+                        .getReputationScore(userIdentity.getUserProfile()).getTotalScore());
+    }
+
+    public void save() {
+        if (userIdentity == null) {
+            // need to create the user.
+            loadFromIdentity(generateUser().join());
+        } else {
+            BisqContext.get().getUserIdentityService().editUserProfile(userIdentity, terms, statement);
+        }
+    }
 }

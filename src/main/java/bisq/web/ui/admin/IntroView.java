@@ -1,9 +1,10 @@
-package bisq.web.ui.easy;
+package bisq.web.ui.admin;
 
 import bisq.user.identity.UserIdentity;
 import bisq.web.base.MainLayout;
+import bisq.web.bo.ProfileBean;
+import bisq.web.ui.easy.BisqEasyView;
 import bisq.web.util.UIUtils;
-import bisq.web.bo.GenerateUser;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dependency.CssImport;
@@ -26,7 +27,7 @@ import java.util.Optional;
 @CssImport("./styles/BisqEasyView.css")
 @Slf4j
 public class IntroView extends VerticalLayout {
-    protected Binder<GenerateUser> userBinder = new Binder<>();
+    protected Binder<ProfileBean> userBinder = new Binder<>();
 
     public IntroView() {
         UIUtils.create(new H1("Welcome to Bisq2"), this::add, "welcomemsg");
@@ -41,9 +42,9 @@ public class IntroView extends VerticalLayout {
                 .asRequired()
                 .withValidator(input -> input.length() > 5 && input.length() <= 32, "Please enter between 5 and 32 characters")
                 .withValidator(new RegexpValidator("Please enter only Alphanumeric characters", "[A-Za-z0-9]*"))
-                .bind(GenerateUser::getNickname, GenerateUser::setNickname);
+                .bind(ProfileBean::getNickname, ProfileBean::setNickname);
 
-        userBinder.setBean(new GenerateUser());
+        userBinder.setBean(new ProfileBean());
         Button finishButton = UIUtils.create(new Button("Finish"), profileContainer::add, "finishButton");
         finishButton.addClickListener(event -> finish());
         Optional<UserIdentity> userOpt = userBinder.getBean().selectedUser();

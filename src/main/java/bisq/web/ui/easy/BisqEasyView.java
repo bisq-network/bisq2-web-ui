@@ -9,13 +9,11 @@ import bisq.chat.trade.pub.PublicTradeChatMessage;
 import bisq.i18n.Res;
 import bisq.presentation.formatters.DateFormatter;
 import bisq.user.profile.UserProfile;
-import bisq.web.base.BisqContext;
 import bisq.web.base.MainLayout;
 import bisq.web.util.Popup;
 import bisq.web.util.UIUtils;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.Text;
-import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.ComboBox;
@@ -33,18 +31,21 @@ import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.router.Route;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.vaadin.lineawesome.LineAwesomeIcon;
 
 import java.text.DateFormat;
 import java.util.Date;
 import java.util.Optional;
 
-import org.vaadin.lineawesome.LineAwesomeIcon;
+import static bisq.web.ui.easy.BisqEasyView.NAME;
 
-@Route(value = "easy", layout = MainLayout.class)
+@Route(value = NAME, layout = MainLayout.class)
 @CssImport("./styles/shared-styles.css")
-@CssImport("./styles/BisqEasyView.css")
+@CssImport("./styles/" + NAME + ".css")
 @Slf4j
 public class BisqEasyView extends HorizontalLayout implements IBisqEasyView {
+
+    public static final String NAME = "BisqEasyView";
 
     public static final String CHANNEL_PARAM = "channel"; // URL parameter for choosing the channel
 
@@ -313,11 +314,4 @@ public class BisqEasyView extends HorizontalLayout implements IBisqEasyView {
         tradeChannelBox.setValue(null);
         tradeChannelBox.setVisible(false);
     }
-
-    @Override
-    public Runnable pushCallBack(Runnable command) {
-        final UI sourceUI = UI.getCurrent();
-        return () -> sourceUI.access(() -> command.run()); //avoiding dependency to vaadin command
-    }
-
 }

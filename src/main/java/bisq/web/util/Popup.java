@@ -3,10 +3,9 @@ package bisq.web.util;
 import bisq.i18n.Res;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dialog.Dialog;
+import com.vaadin.flow.component.html.Div;
 
 import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Supplier;
 
 /**
  * Popup for user Notification
@@ -31,6 +30,17 @@ public class Popup extends Dialog {
         return this;
     }
 
+    public Popup msgText(String msg) {
+        this.add(UIUtils.lambda(new Div(), d -> d.setText(msg)));
+        return this;
+    }
+
+    public Popup error(String errText) {
+        addClassName("PopupError");
+        setHeaderTitle(errText);
+        return this;
+    }
+
     public Popup cancelButton() {
         Button cancel = new Button(Res.get("cancel"));
         cancel.addClassName("cancelButton");
@@ -46,7 +56,7 @@ public class Popup extends Dialog {
 
     public Button getActionButton() {
         if (actionButton == null) {
-            actionButton = new Button();
+            actionButton = new Button("Ok");
             actionButton.addClassName("actionButton");
             getFooter().add(actionButton);
         }
