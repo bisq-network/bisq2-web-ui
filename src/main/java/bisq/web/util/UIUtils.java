@@ -1,13 +1,16 @@
 package bisq.web.util;
 
+import bisq.common.observable.ObservableArray;
 import bisq.common.observable.ObservableSet;
 import com.vaadin.flow.component.ClickEvent;
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.ComponentEventListener;
 import com.vaadin.flow.component.HasStyle;
-import com.vaadin.flow.component.UI;
+import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.data.provider.ListDataProvider;
+import com.vaadin.flow.function.SerializableComparator;
 import com.vaadin.flow.server.StreamResource;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -20,11 +23,9 @@ import java.text.DateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
+import java.util.*;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -158,12 +159,42 @@ public class UIUtils {
         });
     }
 
-    public static <T> ListDataProvider<T> providerFrom(ObservableSet<T> observableSet, EventListenerSupport<Consumer<T>> detailListener) {
+    public static <T> ListDataProvider<T> providerFrom(Component comp, ObservableSet<T> observableSet, EventListenerSupport<Consumer<T>> detailListener) {
         ListDataProvider<T> provider = new ListDataProvider<>(observableSet);
-        final UI ui = UI.getCurrent();
-        observableSet.addChangedListener(() -> ui.access(provider::refreshAll));
-        detailListener.addListener(t -> ui.access(() -> provider.refreshItem((T) t)));
+        new AttachListener(comp, observableSet, provider::refreshAll);
+        new AttachListener<T>(comp, detailListener, provider::refreshItem);
         return provider;
     }
 
+    public static <T> ListDataProvider<T> providerFrom(Component comp, ObservableArray<T> observableArray) {
+        ListDataProvider<T> provider = new ListDataProvider<>(observableArray);
+        new AttachListener(comp, observableArray, provider::refreshAll);
+        return provider;
+    }
+
+    public static <T> ListDataProvider<T> providerFrom(Component comp, ObservableSet<T> observableSet) {
+        ListDataProvider<T> provider = new ListDataProvider<>(observableSet);
+        new AttachListener(comp, observableSet, provider::refreshAll);
+        return provider;
+    }
+
+    /**
+     * Why doesnt Vaading write a class SerializableComparator, which is actually worth the name?
+     */
+    public static <T> SerializableComparator<T> toS(Comparator<T> c) {
+        return (SerializableComparator<T>) c::compare;
+    }
+
+    public static <T> void sortByLabel(ComboBox<T> box) {
+        box.getListDataView().setSortComparator(toS(Comparator.comparing(box.getItemLabelGenerator())));
+    }
+
+    public static <T, U extends Comparable<? super U>> SerializableComparator<T> comparing(Function<T, U> compFunction) {
+        return toS(Comparator.comparing(compFunction));
+    }
 }
+
+// install observer listener
+
+
+
