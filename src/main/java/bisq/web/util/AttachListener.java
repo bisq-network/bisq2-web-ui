@@ -5,6 +5,8 @@ import bisq.common.observable.ObservableArray;
 import bisq.common.observable.ObservableSet;
 import bisq.common.observable.Pin;
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.UI;
+import com.vaadin.flow.function.SerializableConsumer;
 import com.vaadin.flow.server.Command;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.event.EventListenerSupport;
@@ -13,10 +15,12 @@ import java.util.function.Consumer;
 
 @Slf4j
 public class AttachListener<T> {
-    Pin pin;
+    protected Pin pin;
+    Component bound2lifecycle;
 
     public AttachListener(Component bound2lifecycle, ObservableSet<T> observableSet, Command run) {
-        Runnable changeListener = () -> bound2lifecycle.getUI().orElseThrow().access(run);
+        this.bound2lifecycle = bound2lifecycle;
+        Runnable changeListener = () -> access(run);
         if (bound2lifecycle.isAttached()) {
             pin = observableSet.addChangedListener(changeListener);
         }
@@ -31,10 +35,23 @@ public class AttachListener<T> {
             pin.unbind();
             pin = null;
         });
+    }
+
+    protected void access(Command run) {
+        UI ui = bound2lifecycle.getUI().orElse(UI.getCurrent());
+        if (ui == null) {
+            throw new RuntimeException("No UI instance accessible.");
+        }
+        if (ui.getSession() != null) {
+            ui.access(run);
+        } else if (pin != null) { // UI not attached to UserSession
+            pin.unbind();
+        }
     }
 
     public AttachListener(Component bound2lifecycle, ObservableArray<T> observablearray, Command run) {
-        Runnable changeListener = () -> bound2lifecycle.getUI().orElseThrow().access(run);
+        this.bound2lifecycle = bound2lifecycle;
+        Runnable changeListener = () -> access(run);
         if (bound2lifecycle.isAttached()) {
             pin = observablearray.addChangedListener(changeListener);
         }
@@ -51,8 +68,11 @@ public class AttachListener<T> {
         });
     }
 
-    public AttachListener(Component bound2lifecycle, Observable<T> observable, Consumer<T> consumer) {
-        Consumer<T> observer = t -> bound2lifecycle.getUI().orElseThrow().access(() -> consumer.accept(t));
+    public AttachListener(Component bound2lifecycle, Observable<T> observable, SerializableConsumer<T> consumer) {
+        this.bound2lifecycle = bound2lifecycle;
+        Consumer<T> observer = t -> access(() -> consumer.accept(t));
+//        SerializableConsumer<T> observer = bound2lifecycle.getUI().orElseThrow().accessLater(consumer, pin::unbind);
+
         if (bound2lifecycle.isAttached()) {
             pin = observable.addObserver(observer);
         }
@@ -61,7 +81,8 @@ public class AttachListener<T> {
     }
 
     public AttachListener(Component bound2lifecycle, EventListenerSupport<Consumer<T>> eventListener, Consumer<T> consumer) {
-        Consumer<T> observer = t -> bound2lifecycle.getUI().orElseThrow().access(() -> consumer.accept(t));
+        this.bound2lifecycle = bound2lifecycle;
+        Consumer<T> observer = t -> access(() -> consumer.accept(t));
         if (bound2lifecycle.isAttached()) {
             eventListener.addListener(observer);
         }
