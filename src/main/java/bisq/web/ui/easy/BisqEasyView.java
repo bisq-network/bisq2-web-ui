@@ -228,7 +228,7 @@ public class BisqEasyView extends HorizontalLayout implements IBisqEasyView {
 
     private void send() {
         String text = enterField.getValue();
-        if (text != null && !text.isEmpty()) {
+        if (text != null && !text.isEmpty() && identitySelect.getOptionalValue().isPresent()) {
             presenter.sendMessage(identitySelect.getValue(), text);
         }
         enterField.setValue(enterField.getEmptyValue());

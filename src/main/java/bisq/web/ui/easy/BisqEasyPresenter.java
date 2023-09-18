@@ -100,7 +100,7 @@ public class BisqEasyPresenter {
 
     public void sendMessage(UserIdentity userIdentity, String text) {
         Objects.requireNonNull(userIdentity, "UserIdentity not set");
-        Objects.requireNonNull(text, "nop text to send.");
+        Objects.requireNonNull(text, "no text to send.");
         selectedChannel.ifPresent(channel -> {
             //            Optional<Quotation> quotation = quotedMessageBlock.getQuotation();
             SettingsService settingsService = BisqContext.get().getApplicationService().getSettingsService();
