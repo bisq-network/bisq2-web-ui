@@ -5,23 +5,21 @@ import bisq.chat.message.ChatMessage;
 import bisq.chat.message.Quotation;
 import bisq.chat.trade.priv.PrivateTradeChannel;
 import bisq.chat.trade.pub.PublicTradeChannel;
-import bisq.chat.trade.pub.PublicTradeChannelService;
 import bisq.common.observable.ObservableArray;
+import bisq.common.observable.ObservableSet;
 import bisq.common.observable.Pin;
 import bisq.settings.SettingsService;
 import bisq.support.SupportService;
 import bisq.user.identity.UserIdentity;
 import bisq.user.profile.UserProfile;
 import bisq.web.base.BisqContext;
-import com.vaadin.flow.data.provider.ListDataProvider;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -34,38 +32,35 @@ import java.util.stream.Collectors;
 @Slf4j
 public class BisqEasyPresenter {
     @Getter
-    protected Optional<Channel> selectedChannel = Optional.empty();
+    protected Optional<Channel> selectedChannel;
     @Getter
     protected IBisqEasyView iBisqEasyView;
     protected Pin selectedChannelPin;
-    protected ListDataProvider<ChatMessage> chatMessageProvider;
-
-    protected ListDataProvider<PublicTradeChannel> publicTradeChannelProvider;
-    protected ListDataProvider<PublicTradeChannel> activeChannelProvider;
-    protected ListDataProvider<PrivateTradeChannel> privateTradeChannelProvider;
+    @Getter
+    protected ObservableArray<ChatMessage> chatMessages = new ObservableArray<>();
     @Getter
     @Setter
     protected ChatMessage replyMessage;
+    protected ObservableArray<PublicTradeChannel> visibleChannels;
 
-    final List<PublicTradeChannel> visibleChannels = new ArrayList<>(); // effective final by vaadin
-
+    public ObservableArray<PublicTradeChannel> getVisibleChannels() {
+        if (visibleChannels == null) {
+            ObservableSet<String> obsVisibleChannels = BisqContext.get().getPublicTradeChannelService().getVisibleChannelNames();
+            visibleChannels = new ObservableArray<>();
+            obsVisibleChannels.addChangedListener(() -> {
+                visibleChannels.clear();
+                visibleChannels.addAll(BisqContext.get().getPublicTradeChannelService().getChannels().stream() //
+                        .filter(BisqContext.get().getPublicTradeChannelService()::isVisible)
+                        .sorted(Comparator.comparing(PublicTradeChannel::getDisplayString))
+                        .collect(Collectors.toList()));
+            });
+        }
+        return visibleChannels;
+    }
 
     public BisqEasyPresenter(IBisqEasyView iBisqEasyView) {
         this.iBisqEasyView = iBisqEasyView;
-    }
-
-    public ListDataProvider<ChatMessage> chatMessageProvider() {
-        chatMessageProvider = new ListDataProvider<>(new ArrayList<>());
-        return chatMessageProvider;
-    }
-
-
-    public ListDataProvider<PublicTradeChannel> publicTradeChannelsProvider() {
-        publicTradeChannelProvider = new ListDataProvider<PublicTradeChannel>(
-                BisqContext.get().getPublicTradeChannelService().getChannels().stream() //
-                        .sorted(Comparator.comparing(PublicTradeChannel::getDisplayString)) //
-                        .collect(Collectors.toList()));
-        return publicTradeChannelProvider;
+        selectedChannel = Optional.ofNullable(BisqContext.get().getTradeChannelSelectionService().getSelectedChannel().get());
     }
 
 
@@ -80,34 +75,12 @@ public class BisqEasyPresenter {
                 BisqContext.get().getApplicationService().getUserService().getUserProfileService()::ignoreUserProfile);
     }
 
-
-    public ListDataProvider<PrivateTradeChannel> privateTradeChannelsProvider() {
-//        privateTradeChannelProvider = observableSet2ListProvider(BisqContext.get().getChatService().getPrivateTradeChannelService().getChannels());
-        privateTradeChannelProvider = observableSet2ListProvider(BisqContext.get().getChatService().getTradeChannelSelectionService().getPrivateTradeChannelService().getChannels());
-        return privateTradeChannelProvider;
+    public ObservableArray<PrivateTradeChannel> privateTradeChannels() {
+        return BisqContext.get().getChatService().getTradeChannelSelectionService().getPrivateTradeChannelService().getChannels();
     }
 
-    //bisq.chat.trade.TradeChannelSelectionService.reportUserProfile
-
-    protected <T> ListDataProvider<T> observableSet2ListProvider(ObservableArray<T> observableSet) {
-        ListDataProvider<T> provider = new ListDataProvider<>(observableSet);
-        observableSet.addChangedListener(BisqContext.get().runInUIThread(provider::refreshAll));
-        return provider;
-    }
-
-    public ListDataProvider<PublicTradeChannel> activePublicTradeChannelProvider() {
-        PublicTradeChannelService publicTradeChannelService = BisqContext.get().getPublicTradeChannelService();
-        activeChannelProvider = new ListDataProvider<>(visibleChannels);
-
-        publicTradeChannelService.getVisibleChannelNames().addChangedListener(BisqContext.get().runInUIThread(() -> {
-            visibleChannels.clear(); // unfortunately this must be final
-            publicTradeChannelService.getChannels().stream() //
-                    .sorted(Comparator.comparing(PublicTradeChannel::getDisplayString)) //
-                    .filter(publicTradeChannelService::isVisible) //
-                    .forEach(visibleChannels::add);
-            activeChannelProvider.refreshAll();
-        }));
-        return activeChannelProvider;
+    public ObservableArray<PublicTradeChannel> publicTradeChannels() {
+        return BisqContext.get().getPublicTradeChannelService().getChannels();
     }
 
     public void openPrivateChat(ChatMessage message) {
@@ -115,7 +88,6 @@ public class BisqEasyPresenter {
         findAuthor(message).ifPresent(author ->
                 selectChannel(choosePrivateTradeChannel(author))
         );
-
     }
 
     private PrivateTradeChannel choosePrivateTradeChannel(UserProfile peersUserProfile) {
@@ -126,9 +98,10 @@ public class BisqEasyPresenter {
         return BisqContext.get().getPrivateTradeChannelService().traderCreatesNewChannel(myUserIdentity, peersUserProfile, mediatorOpt);
     }
 
-    public void sendMessage(String text) {
+    public void sendMessage(UserIdentity userIdentity, String text) {
+        Objects.requireNonNull(userIdentity, "UserIdentity not set");
+        Objects.requireNonNull(text, "no text to send.");
         selectedChannel.ifPresent(channel -> {
-            UserIdentity userIdentity = BisqContext.get().getUserIdentity();
             //            Optional<Quotation> quotation = quotedMessageBlock.getQuotation();
             SettingsService settingsService = BisqContext.get().getApplicationService().getSettingsService();
             // ref bisq.desktop.primary.main.content.components.QuotedMessageBlock.getQuotation
@@ -155,19 +128,17 @@ public class BisqEasyPresenter {
         if (selectedChannel.equals(Optional.ofNullable(channel))) {
             return;
         }
+        selectedChannel = Optional.ofNullable(channel);
+        BisqContext.get().getTradeChannelSelectionService().selectChannel(channel);
         if (selectedChannelPin != null) {
             selectedChannelPin.unbind();
         }
-        selectedChannel = Optional.ofNullable(channel);
-        BisqContext.get().getTradeChannelSelectionService().selectChannel(channel);
-        if (selectedChannel.isPresent()) {
-            selectedChannelPin = channel.getChatMessages().addChangedListener(
-                    BisqContext.get().runInUIThread(() -> {
-                        chatMessageProvider.getItems().clear();
-                        chatMessageProvider.getItems().addAll(channel.getChatMessages());
-                        chatMessageProvider.refreshAll();
-                    }));
 
+        if (selectedChannel.isPresent()) {
+            selectedChannelPin = channel.getChatMessages().addChangedListener(() -> {
+                chatMessages.clear();
+                chatMessages.addAll(channel.getChatMessages());
+            });
         }
         iBisqEasyView.stateChanged();
     }
@@ -194,10 +165,7 @@ public class BisqEasyPresenter {
                 BisqContext.get().getPrivateTradeChannelService().leaveChannel(privateTradeChannel);
                 // persist is done by leaveChannel
             }
-            activeChannelProvider.getItems().remove(channel);
-            activeChannelProvider.refreshAll();
-            chatMessageProvider.getItems().clear();
-            chatMessageProvider.refreshAll();
+            chatMessages.clear();
             selectedChannel = Optional.empty();
             iBisqEasyView.stateChanged();
         });
@@ -208,4 +176,24 @@ public class BisqEasyPresenter {
             BisqContext.get().getChatService().getPublicTradeChannelService().showChannel((PublicTradeChannel) ch);
         }
     }
+
+    //bisq.desktop.primary.main.content.components.ChatMessagesComponent.Controller.getMyUserProfilesInChannel
+//    public List<UserIdentity> getMyUserProfilesInChannel() {
+//        return chatMessages.stream()
+//                .sorted(Comparator.comparing(ChatMessage::getDate).reversed())
+//                .map(ChatMessage::getAuthorId)
+//                .map(BisqContext.get().getUserIdentityService()::findUserIdentity)
+//                .flatMap(Optional::stream)
+//                .distinct()
+//                .collect(Collectors.toList());
+//    }
+    public Optional<UserIdentity> myLastProfileInChannel() {
+        return chatMessages.stream()
+                .sorted(Comparator.comparing(ChatMessage::getDate).reversed())
+                .map(ChatMessage::getAuthorId)
+                .map(BisqContext.get().getUserIdentityService()::findUserIdentity)
+                .flatMap(Optional::stream)
+                .findFirst();
+    }
+
 }

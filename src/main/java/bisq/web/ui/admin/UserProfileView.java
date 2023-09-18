@@ -5,6 +5,7 @@ import bisq.user.identity.UserIdentity;
 import bisq.web.base.BisqContext;
 import bisq.web.base.MainLayout;
 import bisq.web.bo.ProfileBean;
+import bisq.web.util.AttachListener;
 import bisq.web.util.Popup;
 import bisq.web.util.UIUtils;
 import bisq.web.util.Util;
@@ -94,13 +95,13 @@ public class UserProfileView extends Div {
 
         deleteButton = UIUtils.create(new Button(Res.get("settings.userProfile.deleteProfile")), buttonBar::add, "deleteButton");
         deleteButton.addClickListener(ev -> delete());
-        ListDataProvider<UserIdentity> profilesProvider = UIUtils.providerFrom(getPresenter().createUserIdentityProvider(), getPresenter().getProfileDetailsChangedEvent());
+        ListDataProvider<UserIdentity> profilesProvider = UIUtils.providerFrom(this, getPresenter().createUserIdentityObserver(), getPresenter().getProfileDetailsChangedEvent());
         profileSelection.setItems(profilesProvider);
         // hide delete button iff only one left.
-        getPresenter().getUserIdentities().addChangedListener(BisqContext.get().runInUIThread(() -> deleteButton.setEnabled(getPresenter().userIdentities.size() > 1)));
+        new AttachListener(this, getPresenter().getUserIdentities(), () -> deleteButton.setEnabled(getPresenter().userIdentities.size() > 1));
+        new AttachListener<ProfileBean>(this, getPresenter().getProfileOb(), this::loadProfile);
+        new AttachListener<UserIdentity>(this, getPresenter().getProfileDetailsChangedEvent(), this::loadUserIdentity);
 
-        getPresenter().getProfileOb().addObserver(profile -> BisqContext.get().runInUIThread(() -> loadProfile(profile)).run());
-        getPresenter().getProfileDetailsChangedEvent().addListener(ident -> BisqContext.get().runInUIThread(() -> loadUserIdentity(ident)).run());
         getPresenter().selectProfile(new ProfileBean().loadFromIdentity(
                 BisqContext.get().getUserIdentityService().getSelectedUserIdentity().get()));
     }

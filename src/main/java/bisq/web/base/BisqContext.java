@@ -9,7 +9,6 @@ import bisq.user.identity.UserIdentity;
 import bisq.user.identity.UserIdentityService;
 import bisq.user.profile.UserProfileService;
 import bisq.user.reputation.ProfileAgeService;
-import com.vaadin.flow.component.UI;
 import lombok.Getter;
 
 import java.util.Optional;
@@ -82,17 +81,5 @@ public class BisqContext {
     public ProfileAgeService getProfileAgeService() {
         return getApplicationService().getUserService().getReputationService().getProfileAgeService();
     }
-
-    /**
-     * Use this if you need to execute code from backend in the UI. Threads will most likely not be the same!
-     *
-     * @param r
-     * @return
-     */
-    public Runnable runInUIThread(Runnable r) {
-        final UI ui = UI.getCurrent();
-        return () -> ui.access(() -> r.run());
-    }
-
 
 }

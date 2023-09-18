@@ -23,7 +23,7 @@ public class UserProfilePresenter {
         profileDetailsChangedEvent = EventListenerSupport.create((Class<Consumer<UserIdentity>>) (Class<?>) Consumer.class);
     }
 
-    public ObservableSet<UserIdentity> createUserIdentityProvider() {
+    public ObservableSet<UserIdentity> createUserIdentityObserver() {
         userIdentities = BisqContext.get().getUserIdentityService().getUserIdentities();
         return userIdentities;
     }

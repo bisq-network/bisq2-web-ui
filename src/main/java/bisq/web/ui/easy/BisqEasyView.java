@@ -8,7 +8,9 @@ import bisq.chat.trade.pub.PublicTradeChannel;
 import bisq.chat.trade.pub.PublicTradeChatMessage;
 import bisq.i18n.Res;
 import bisq.presentation.formatters.DateFormatter;
+import bisq.user.identity.UserIdentity;
 import bisq.user.profile.UserProfile;
+import bisq.web.base.BisqContext;
 import bisq.web.base.MainLayout;
 import bisq.web.util.Popup;
 import bisq.web.util.UIUtils;
@@ -25,6 +27,7 @@ import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.select.Select;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.provider.ListDataProvider;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
@@ -63,6 +66,7 @@ public class BisqEasyView extends HorizontalLayout implements IBisqEasyView {
     protected final Div replyMessage;
     protected final TextField searchField;
     protected final Checkbox offerOnlyCheck;
+    protected final Select<UserIdentity> identitySelect;
     @Getter
     private BisqEasyPresenter presenter = new BisqEasyPresenter(this);
 
@@ -80,8 +84,9 @@ public class BisqEasyView extends HorizontalLayout implements IBisqEasyView {
 
         // combo channel select
         tradeChannelBox = UIUtils.create(new ComboBox<>(), channelColumn::add, "tradeChannelBox");
-        tradeChannelBox.setItems(presenter.publicTradeChannelsProvider());
+        tradeChannelBox.setItems(UIUtils.providerFrom(this, presenter.publicTradeChannels()));
         tradeChannelBox.setItemLabelGenerator(Channel::getDisplayString);
+        UIUtils.sortByLabel(tradeChannelBox);
         tradeChannelBox.addValueChangeListener(ev -> {
             if (ev.isFromClient()) {
                 boxSelection();
@@ -102,7 +107,9 @@ public class BisqEasyView extends HorizontalLayout implements IBisqEasyView {
         listTradeChannels = UIUtils.create(new Grid<>(), channelColumn::add, "listTradeChannels");
         listTradeChannels.addThemeVariants(GridVariant.LUMO_NO_BORDER, GridVariant.LUMO_NO_ROW_BORDERS);
         listTradeChannels.addColumn(Channel::getDisplayString);
-        listTradeChannels.setItems(presenter.activePublicTradeChannelProvider());
+        
+        listTradeChannels.setItems(UIUtils.providerFrom(this, presenter.getVisibleChannels()));
+
         listTradeChannels.setSelectionMode(Grid.SelectionMode.SINGLE);
         listTradeChannels.asSingleSelect().addValueChangeListener(ev1 -> {
             if (ev1.isFromClient()) {
@@ -113,14 +120,15 @@ public class BisqEasyView extends HorizontalLayout implements IBisqEasyView {
         Hr divider = new Hr();
         channelColumn.add(divider);
 
-
         // private section  ----------------------------------------------------------
         UIUtils.create(new Label("Private channels"), channelColumn::add, "privateLabel");
 
         privateChannelList = UIUtils.create(new Grid<>(), channelColumn::add, "privateChannelList");
         privateChannelList.addThemeVariants(GridVariant.LUMO_NO_BORDER, GridVariant.LUMO_NO_ROW_BORDERS);
         privateChannelList.addColumn(Channel::getDisplayString);
-        privateChannelList.setItems(presenter.privateTradeChannelsProvider());
+        privateChannelList.setItems(UIUtils.providerFrom(this, presenter.privateTradeChannels()));
+
+
         privateChannelList.setSelectionMode(Grid.SelectionMode.SINGLE);
         privateChannelList.asSingleSelect().addValueChangeListener(ev1 -> {
             if (ev1.isFromClient()) {
@@ -155,7 +163,8 @@ public class BisqEasyView extends HorizontalLayout implements IBisqEasyView {
 
         chatGrid = UIUtils.create(new Grid(), chatColumn::add, "chatGrid");
         chatGrid.addColumn(new ComponentRenderer<Div, ChatMessage>(this::chatComponent));
-        ListDataProvider<ChatMessage> chatMessageProvider = presenter.chatMessageProvider();
+
+        ListDataProvider<ChatMessage> chatMessageProvider = UIUtils.providerFrom(this, presenter.getChatMessages());
         chatGrid.setItems(chatMessageProvider);
         chatMessageProvider.addDataProviderListener(ev -> {
             chatGrid.scrollToEnd(); // scroll down to display latest message
@@ -174,13 +183,23 @@ public class BisqEasyView extends HorizontalLayout implements IBisqEasyView {
         replyMessage = UIUtils.create(new Div(), replyArea::add, "replyMessage");
 
         replyArea.setVisible(false);
+
         // message enter ----------------------------------------
 
         HorizontalLayout messageLayout = UIUtils.create(new HorizontalLayout(), chatColumn::add, "messageLayout");
+        // switch profiles ===
+        identitySelect = UIUtils.create(new Select<UserIdentity>(), messageLayout::add, "profileSelect");
+        ListDataProvider<UserIdentity> identityProvider = UIUtils.providerFrom(this, BisqContext.get().getUserIdentityService().getUserIdentities());
+        identitySelect.setItems(identityProvider);
+        identitySelect.setValue(BisqContext.get().getUserIdentity());
+        identitySelect.setItemLabelGenerator(UserIdentity::getNickName);
+
+        // enter message to send ===
         enterField = UIUtils.create(new TextField(), messageLayout::add, "enterField");
         enterField.setPlaceholder("Type a new message");
         enterField.addKeyPressListener(Key.ENTER, ev -> send());
 
+        // send button ===
         Button sendButton = UIUtils.create(new Button(new Icon(VaadinIcon.CARET_RIGHT)), messageLayout::add, "sendButton");
         sendButton.addClickListener(ev -> send());
     }
@@ -209,8 +228,8 @@ public class BisqEasyView extends HorizontalLayout implements IBisqEasyView {
 
     private void send() {
         String text = enterField.getValue();
-        if (text != null && !text.isEmpty()) {
-            presenter.sendMessage(text);
+        if (text != null && !text.isEmpty() && identitySelect.getOptionalValue().isPresent()) {
+            presenter.sendMessage(identitySelect.getValue(), text);
         }
         enterField.setValue(enterField.getEmptyValue());
         replyArea.setVisible(false);
@@ -273,15 +292,26 @@ public class BisqEasyView extends HorizontalLayout implements IBisqEasyView {
 
     @Override
     public void stateChanged() {
+
         channelLabel.setText(presenter.getSelectedChannel().map(Channel::getDisplayString).orElse(""));
-        listTradeChannels.select(presenter.getSelectedChannel()
+        PublicTradeChannel publicTradeChannel = presenter.getSelectedChannel()
                 .filter(PublicTradeChannel.class::isInstance)
                 .map(PublicTradeChannel.class::cast)
-                .orElse(null));
+                .orElse(null);
+        listTradeChannels.select(publicTradeChannel);
+        listTradeChannels.getDataProvider().refreshAll();
         PrivateTradeChannel privateTradeChannel = (PrivateTradeChannel) presenter.getSelectedChannel()
                 .filter(PrivateTradeChannel.class::isInstance)
                 .orElse(null);
         privateChannelList.select(privateTradeChannel);
+        identitySelect.setVisible(privateTradeChannel == null);
+        if (publicTradeChannel != null) {
+//            BisqContext.get().getTradeChannelSelectionService().getPublicTradeChannelService().
+            identitySelect.setValue(presenter.myLastProfileInChannel() //
+                    .or(() -> identitySelect.getOptionalValue()) //
+                    .orElseGet(() -> BisqContext.get().getUserIdentity())
+            );
+        }
 
         if (!presenter.getSelectedChannel().isPresent()) {
             enterField.setValue(enterField.getEmptyValue());
