@@ -2,10 +2,7 @@ package bisq.web.util;
 
 import bisq.common.observable.ObservableArray;
 import bisq.common.observable.ObservableSet;
-import com.vaadin.flow.component.ClickEvent;
-import com.vaadin.flow.component.Component;
-import com.vaadin.flow.component.ComponentEventListener;
-import com.vaadin.flow.component.HasStyle;
+import com.vaadin.flow.component.*;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
@@ -191,6 +188,14 @@ public class UIUtils {
 
     public static <T, U extends Comparable<? super U>> SerializableComparator<T> comparing(Function<T, U> compFunction) {
         return toS(Comparator.comparing(compFunction));
+    }
+
+    public static <C extends AbstractField<C, T>, T> HasValue.ValueChangeListener<? super AbstractField.ComponentValueChangeEvent<C, T>> onClientEvent(HasValue.ValueChangeListener<? super AbstractField.ComponentValueChangeEvent<C, T>> sup) {
+        return ev -> {
+            if (ev.isFromClient()) {
+                sup.valueChanged(ev);
+            }
+        };
     }
 }
 

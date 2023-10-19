@@ -87,11 +87,7 @@ public class BisqEasyView extends HorizontalLayout implements IBisqEasyView {
         tradeChannelBox.setItems(UIUtils.providerFrom(this, presenter.publicTradeChannels()));
         tradeChannelBox.setItemLabelGenerator(Channel::getDisplayString);
         UIUtils.sortByLabel(tradeChannelBox);
-        tradeChannelBox.addValueChangeListener(ev -> {
-            if (ev.isFromClient()) {
-                boxSelection();
-            }
-        });
+        tradeChannelBox.addValueChangeListener(UIUtils.onClientEvent(ev -> boxSelection()));
         tradeChannelBox.setVisible(false);
         tradeChannelBox.setPlaceholder("Add market channel");// Res.get("tradeChat.addMarketChannel"));
 
