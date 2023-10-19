@@ -68,7 +68,7 @@ public class BisqEasyView extends HorizontalLayout implements IBisqEasyView {
     protected final Checkbox offerOnlyCheck;
     protected final Select<UserIdentity> identitySelect;
     @Getter
-    private BisqEasyPresenter presenter = new BisqEasyPresenter(this);
+    protected final BisqEasyPresenter presenter = new BisqEasyPresenter(this);
 
 
     public BisqEasyView() {
@@ -304,7 +304,7 @@ public class BisqEasyView extends HorizontalLayout implements IBisqEasyView {
         if (publicTradeChannel != null) {
 //            BisqContext.get().getTradeChannelSelectionService().getPublicTradeChannelService().
             identitySelect.setValue(presenter.myLastProfileInChannel() //
-                    .or(() -> identitySelect.getOptionalValue()) //
+                    .or(identitySelect::getOptionalValue) //
                     .orElseGet(() -> BisqContext.get().getUserIdentity())
             );
         }

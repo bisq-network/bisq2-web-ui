@@ -114,11 +114,7 @@ public class UIUtils {
     }
 
     public static <T> Collection<T> nullSafeCollection(Collection<T> col) {
-        if (col == null) {
-            return Collections.EMPTY_LIST;
-        } else {
-            return col;
-        }
+        return Objects.requireNonNullElse(col, Collections.EMPTY_LIST);
     }
 
     /**
@@ -129,11 +125,7 @@ public class UIUtils {
      * @return
      */
     public static String formatString(String template, String... args) {
-        // String[] array = (String[]) IntStream.range(1, args.length + 1).mapToObj(i -> "{" + i +
-        // "}").collect(Collectors.toList()).toArray();
-        if (template == null) {
-            throw new NullPointerException();
-        }
+        Objects.requireNonNull(template);
         String[] array = new String[ args.length ];
         for (int i = 0; i < args.length; ) {
             array[ i ] = "{" + ++i + "}";
@@ -179,7 +171,7 @@ public class UIUtils {
      * Why doesnt Vaading write a class SerializableComparator, which is actually worth the name?
      */
     public static <T> SerializableComparator<T> toS(Comparator<T> c) {
-        return (SerializableComparator<T>) c::compare;
+        return c::compare;
     }
 
     public static <T> void sortByLabel(ComboBox<T> box) {
@@ -198,8 +190,5 @@ public class UIUtils {
         };
     }
 }
-
-// install observer listener
-
 
 
