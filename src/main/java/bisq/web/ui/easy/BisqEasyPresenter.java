@@ -109,6 +109,7 @@ public class BisqEasyPresenter {
                     .filter(msg -> StringUtils.isNotBlank(msg.getText())) //
                     .flatMap(this::findAuthor) //
                     .map(authorProfile -> new Quotation(authorProfile.getNym(), authorProfile.getNickName(), authorProfile.getPubKeyHash(), replyMessage.getText()));
+            replyMessage = null;
 
             if (settingsService.getOffersOnly().get()) {
                 settingsService.setOffersOnly(false);

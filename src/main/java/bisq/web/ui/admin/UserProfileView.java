@@ -52,11 +52,9 @@ public class UserProfileView extends Div {
         profileSelection = UIUtils.create(new Select<UserIdentity>(), selectBar::add, "profileSelection");
         profileSelection.setLabel(Res.get("settings.userProfile.select"));
         profileSelection.setItemLabelGenerator(UserIdentity::getNickName);
-        profileSelection.addValueChangeListener(ev -> {
-            if (ev.isFromClient()) {
-                getPresenter().selectProfile(new ProfileBean().loadFromIdentity(ev.getValue()));
-            }
-        });
+        profileSelection.addValueChangeListener(UIUtils.onClientEvent(ev ->
+                getPresenter().selectProfile(new ProfileBean().loadFromIdentity(ev.getValue()))));
+
 
         Button createButton = UIUtils.create(new Button(Res.get("settings.userProfile.createNewProfile")), selectBar::add, "createButton outlined-button");
         createButton.addClickListener(ev -> presenter.createNewProfile());

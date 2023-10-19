@@ -2,10 +2,7 @@ package bisq.web.util;
 
 import bisq.common.observable.ObservableArray;
 import bisq.common.observable.ObservableSet;
-import com.vaadin.flow.component.ClickEvent;
-import com.vaadin.flow.component.Component;
-import com.vaadin.flow.component.ComponentEventListener;
-import com.vaadin.flow.component.HasStyle;
+import com.vaadin.flow.component.*;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
@@ -117,11 +114,7 @@ public class UIUtils {
     }
 
     public static <T> Collection<T> nullSafeCollection(Collection<T> col) {
-        if (col == null) {
-            return Collections.EMPTY_LIST;
-        } else {
-            return col;
-        }
+        return Objects.requireNonNullElse(col, Collections.EMPTY_LIST);
     }
 
     /**
@@ -132,11 +125,7 @@ public class UIUtils {
      * @return
      */
     public static String formatString(String template, String... args) {
-        // String[] array = (String[]) IntStream.range(1, args.length + 1).mapToObj(i -> "{" + i +
-        // "}").collect(Collectors.toList()).toArray();
-        if (template == null) {
-            throw new NullPointerException();
-        }
+        Objects.requireNonNull(template);
         String[] array = new String[ args.length ];
         for (int i = 0; i < args.length; ) {
             array[ i ] = "{" + ++i + "}";
@@ -182,7 +171,7 @@ public class UIUtils {
      * Why doesnt Vaading write a class SerializableComparator, which is actually worth the name?
      */
     public static <T> SerializableComparator<T> toS(Comparator<T> c) {
-        return (SerializableComparator<T>) c::compare;
+        return c::compare;
     }
 
     public static <T> void sortByLabel(ComboBox<T> box) {
@@ -192,9 +181,14 @@ public class UIUtils {
     public static <T, U extends Comparable<? super U>> SerializableComparator<T> comparing(Function<T, U> compFunction) {
         return toS(Comparator.comparing(compFunction));
     }
+
+    public static <C extends AbstractField<C, T>, T> HasValue.ValueChangeListener<? super AbstractField.ComponentValueChangeEvent<C, T>> onClientEvent(HasValue.ValueChangeListener<? super AbstractField.ComponentValueChangeEvent<C, T>> sup) {
+        return ev -> {
+            if (ev.isFromClient()) {
+                sup.valueChanged(ev);
+            }
+        };
+    }
 }
-
-// install observer listener
-
 
 
