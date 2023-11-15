@@ -8,7 +8,6 @@ buildscript {
 
 plugins {
     id 'war'
-//    id 'org.gretty' version '3.0.6'
     id 'com.vaadin'
 }
 
@@ -27,14 +26,10 @@ repositories {
 test {
     useJUnitPlatform()
 }
-//gretty {
-//    contextPath = "/"
-//    servletContainer = "jetty9.4"
-//}
 
 java {
-    sourceCompatibility JavaVersion.VERSION_11
-    targetCompatibility JavaVersion.VERSION_11
+    sourceCompatibility JavaVersion.VERSION_17
+    targetCompatibility JavaVersion.VERSION_17
 }
 // The following pnpmEnable = false is not needed as npm is used by default,
 // this is just an example of how to configure the Gradle Vaadin Plugin:
