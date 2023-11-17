@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Tomcat 9.0.64 vanilla2" type="#com.intellij.j2ee.web.tomcat.TomcatRunConfigurationFactory" factoryName="Local" APPLICATION_SERVER_NAME="Tomcat 9.0.64 vanilla" ALTERNATIVE_JRE_ENABLED="true" ALTERNATIVE_JRE_PATH="$PROJECT_DIR$/../../../java/dcevm-11.0.15+1">
+  <configuration default="false" name="Tomcat 9.0.64 vanilla2" type="#com.intellij.j2ee.web.tomcat.TomcatRunConfigurationFactory" factoryName="Local" APPLICATION_SERVER_NAME="Tomcat 9.0.64 vanilla" ALTERNATIVE_JRE_ENABLED="true" ALTERNATIVE_JRE_PATH="jbr-17">
     <option name="OPEN_IN_BROWSER" value="false" />
     <option name="COMMON_VM_ARGUMENTS" value="--add-exports java.base/jdk.internal.misc=ALL-UNNAMED -XX:HotswapAgent=fatjar -XX:+AllowEnhancedClassRedefinition -Dapplication.network.supportedTransportTypes.0=CLEAR -Dapplication.network.seedAddressByTransportType.clear.0=127.0.0.1:8000 -Dapplication.network.seedAddressByTransportType.clear.1=127.0.0.1:8001 -DAPPDATA=~/work/bisq2/web-ui/web-app" />
     <option name="SHOW_DIALOG_ON_UPDATE" value="false" />

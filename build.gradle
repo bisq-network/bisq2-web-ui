@@ -8,7 +8,6 @@ buildscript {
 
 plugins {
     id 'war'
-//    id 'org.gretty' version '3.0.6'
     id 'com.vaadin'
 }
 
@@ -27,14 +26,10 @@ repositories {
 test {
     useJUnitPlatform()
 }
-//gretty {
-//    contextPath = "/"
-//    servletContainer = "jetty9.4"
-//}
 
 java {
-    sourceCompatibility JavaVersion.VERSION_11
-    targetCompatibility JavaVersion.VERSION_11
+    sourceCompatibility JavaVersion.VERSION_17
+    targetCompatibility JavaVersion.VERSION_17
 }
 // The following pnpmEnable = false is not needed as npm is used by default,
 // this is just an example of how to configure the Gradle Vaadin Plugin:
@@ -69,8 +64,6 @@ dependencies {
     implementation('bisq:support')
 
     // logging
-    // currently we are logging through the SLF4J API to SLF4J-Simple. See src/main/resources/simplelogger.properties file for the logger configuration
-//    implementation "org.slf4j:slf4j-simple:1.7.30"
     implementation 'ch.qos.logback:logback-classic:1.2.11'
     compileOnly 'org.projectlombok:lombok:1.18.24'
     annotationProcessor 'org.projectlombok:lombok:1.18.24'
