@@ -11,7 +11,6 @@ plugins {
     id 'com.vaadin'
 }
 
-
 vaadinVersion = '23.1.3'
 
 defaultTasks("build")
@@ -54,8 +53,6 @@ dependencies {
     implementation('bisq:account')
     implementation('bisq:offer')
     implementation('bisq:contract')
-    implementation('bisq:protocol')
-    implementation('bisq:oracle')
     implementation('bisq:settings')
     implementation('bisq:user')
     implementation('bisq:chat')

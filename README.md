@@ -15,9 +15,10 @@ Bisq2 Web UI is a standard JEE web project. To see the full interaction, you wil
 Actually the desktop client may access the publicly available price nodes as well, but they are not necessary to run the web ui.
 
 ## Prerequisites
-- Java 11 or higher
-- Tomcat 9 or higher
-- Gradle 7.5
+
+- Java 17 or higher
+- Tomcat 10 or higher
+- Gradle 7.6.3
 - Git (obviously)
 - (Optionally): Intellij Ultimate
 
