@@ -88,7 +88,7 @@ public class WebApplicationService extends ApplicationService {
     private final Observable<State> state = new Observable<>(State.INITIALIZE_APP);
 
     public WebApplicationService(String[] args) {
-        super("rest_api", args);
+        super("web_server", args);
         securityService = new SecurityService(persistenceService);
         com.typesafe.config.Config bitcoinWalletConfig = getConfig("bitcoinWallet");
         BitcoinWalletSelection bitcoinWalletSelection = bitcoinWalletConfig.getEnum(BitcoinWalletSelection.class, "bitcoinWalletSelection");

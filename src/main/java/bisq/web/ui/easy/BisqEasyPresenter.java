@@ -42,7 +42,7 @@ public class BisqEasyPresenter {
     @Getter
     @Setter
     protected ChatMessage replyMessage;
-    protected ObservableArray<BisqEasyOfferbookChannel> visibleChannels;
+    protected ObservableArray<BisqEasyOfferbookChannel> visibleChannels = new ObservableArray<>();
 
     public BisqEasyPresenter(IBisqEasyView iBisqEasyView) {
         this.iBisqEasyView = iBisqEasyView;
