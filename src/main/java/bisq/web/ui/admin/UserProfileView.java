@@ -101,7 +101,7 @@ public class UserProfileView extends Div {
         new AttachListener<UserIdentity>(this, getPresenter().getProfileDetailsChangedEvent(), this::loadUserIdentity);
 
         getPresenter().selectProfile(new ProfileBean().loadFromIdentity(
-                BisqContext.get().getUserIdentityService().getSelectedUserIdentity().get()));
+                BisqContext.get().getUserIdentityService().getSelectedUserIdentity()));
     }
 
     private void loadProfile(ProfileBean profile) {

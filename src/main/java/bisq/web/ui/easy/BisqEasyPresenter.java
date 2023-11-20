@@ -5,6 +5,7 @@ import bisq.chat.bisqeasy.offerbook.BisqEasyOfferbookChannel;
 import bisq.chat.bisqeasy.offerbook.BisqEasyOfferbookChannelService;
 import bisq.chat.bisqeasy.open_trades.BisqEasyOpenTradeChannel;
 import bisq.chat.common.CommonPublicChatChannel;
+import bisq.chat.priv.PrivateChatChannel;
 import bisq.chat.two_party.TwoPartyPrivateChatChannel;
 import bisq.common.observable.Pin;
 import bisq.common.observable.collection.ObservableArray;
@@ -15,13 +16,11 @@ import bisq.support.SupportService;
 import bisq.user.identity.UserIdentity;
 import bisq.user.profile.UserProfile;
 import bisq.web.base.BisqContext;
-import bisq.web.util.Popup;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Comparator;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -79,8 +78,8 @@ public class BisqEasyPresenter {
                 BisqContext.get().getApplicationService().getUserService().getUserProfileService()::ignoreUserProfile);
     }
 
-    public ObservableArray<TwoPartyPrivateChatChannel> privateTradeChannels() {
-        return BisqContext.get().getPrivateChat2PService().getChannels();
+    public ObservableArray<PrivateChatChannel> privateTradeChannels() {
+        return (ObservableArray) BisqContext.get().getPrivateChat2PService().getChannels();
     }
 
     public ObservableArray<BisqEasyOfferbookChannel> publicTradeChannels() {
@@ -102,51 +101,49 @@ public class BisqEasyPresenter {
         return BisqContext.get().getChatService().createAndSelectTwoPartyPrivateChatChannel(ChatChannelDomain.BISQ_EASY_PRIVATE_CHAT, peersUserProfile);
     }
 
-    public void sendMessage(UserIdentity userIdentity, String text) {
-        Objects.requireNonNull(userIdentity, "UserIdentity not set");
-        Objects.requireNonNull(text, "no text to send.");
-        selectedChannel.ifPresent(chatChannel -> {
-            if (text.length() > ChatMessage.MAX_TEXT_LENGTH) {
-                new Popup().warning(Res.get("validation.tooLong", ChatMessage.MAX_TEXT_LENGTH)).show();
-                return;
-            }
-            SettingsService settingsService = BisqContext.get().getApplicationService().getSettingsService();
-            ChatService chatService = BisqContext.get().getChatService();
-            Optional<Citation> citation = Optional.ofNullable(replyMessage).flatMap(ChatMessage::getCitation);
-            replyMessage = null;
+    public Optional<Validate.ValidationException> sendMessage(UserIdentity userIdentity, String text) {
+        return Validate.thisCode(validate -> {
+            validate.that(userIdentity != null, "UserIdentity not set");
+            validate.that(userIdentity != null, "no text to send.");
+            selectedChannel.ifPresent(chatChannel -> {
+                validate.that(text.length() <= ChatMessage.MAX_TEXT_LENGTH,
+                        Res.get("validation.tooLong", ChatMessage.MAX_TEXT_LENGTH));
+                SettingsService settingsService = BisqContext.get().getApplicationService().getSettingsService();
+                ChatService chatService = BisqContext.get().getChatService();
+                Optional<Citation> citation = Optional.ofNullable(replyMessage).flatMap(ChatMessage::getCitation);
+                replyMessage = null;
+                validate.that(!(citation.isPresent() && citation.get().getText().length() > Citation.MAX_TEXT_LENGTH),
+                        Res.get("validation.tooLong", Citation.MAX_TEXT_LENGTH));
 
-            if (citation.isPresent() && citation.get().getText().length() > Citation.MAX_TEXT_LENGTH) {
-                new Popup().warning(Res.get("validation.tooLong", Citation.MAX_TEXT_LENGTH)).show();
-                return;
-            }
-
-            if (chatChannel instanceof BisqEasyOfferbookChannel obChannel) {
-                String dontShowAgainId = "sendMsgOfferOnlyWarn";
-                if (settingsService.getOffersOnly().get()) {
-                    new Popup().information(Res.get("chat.message.send.offerOnly.warn"))
-                            .actionButtonText(Res.get("confirmation.yes"))
-                            .onAction(() -> settingsService.setOffersOnly(false))
-                            .closeButtonText(Res.get("confirmation.no"))
-                            .dontShowAgainId(dontShowAgainId)
-                            .show();
+                if (chatChannel instanceof BisqEasyOfferbookChannel obChannel) {
+                    String dontShowAgainId = "sendMsgOfferOnlyWarn";
+                    if (settingsService.getOffersOnly().get()) {
+                        settingsService.setOffersOnly(false);
+//                        new Popup().information(Res.get("chat.message.send.offerOnly.warn"))
+//                                .actionButtonText(Res.get("confirmation.yes"))
+//                                .onAction(() -> settingsService.setOffersOnly(false))
+//                                .closeButtonText(Res.get("confirmation.no"))
+//                                .dontShowAgainId(dontShowAgainId)
+//                                .show();
+                    }
+                    chatService.getBisqEasyOfferbookChannelService().publishChatMessage(text, citation, obChannel, userIdentity);
+                } else if (chatChannel instanceof BisqEasyOpenTradeChannel) {
+                    //                if (settingsService.getTradeRulesConfirmed().get() || ((BisqEasyOpenTradeChannel) chatChannel).isMediator()) {
+                    chatService.getBisqEasyOpenTradeChannelService().sendTextMessage(text, citation, (BisqEasyOpenTradeChannel) chatChannel);
+                    //                } else {
+                    //                    new Popup().information(Res.get("bisqEasy.tradeGuide.notConfirmed.warn"))
+                    //                            .actionButtonText(Res.get("bisqEasy.tradeGuide.open"))
+                    //                            .onAction(() -> Navigation.navigateTo(NavigationTarget.BISQ_EASY_GUIDE))
+                    //                            .show();
+                    //                }
+                } else if (chatChannel instanceof CommonPublicChatChannel cpChannel) {
+                    chatService.getCommonPublicChatChannelServices().get(cpChannel.getChatChannelDomain()).publishChatMessage(text, citation, cpChannel, userIdentity);
+                } else if (chatChannel instanceof TwoPartyPrivateChatChannel p2Channel) {
+                    chatService.getTwoPartyPrivateChatChannelServices().get(p2Channel.getChatChannelDomain()).sendTextMessage(text, citation, p2Channel);
                 }
-                chatService.getBisqEasyOfferbookChannelService().publishChatMessage(text, citation, obChannel, userIdentity);
-            } else if (chatChannel instanceof BisqEasyOpenTradeChannel) {
-//                if (settingsService.getTradeRulesConfirmed().get() || ((BisqEasyOpenTradeChannel) chatChannel).isMediator()) {
-                chatService.getBisqEasyOpenTradeChannelService().sendTextMessage(text, citation, (BisqEasyOpenTradeChannel) chatChannel);
-//                } else {
-//                    new Popup().information(Res.get("bisqEasy.tradeGuide.notConfirmed.warn"))
-//                            .actionButtonText(Res.get("bisqEasy.tradeGuide.open"))
-//                            .onAction(() -> Navigation.navigateTo(NavigationTarget.BISQ_EASY_GUIDE))
-//                            .show();
-//                }
-            } else if (chatChannel instanceof CommonPublicChatChannel cpChannel) {
-                chatService.getCommonPublicChatChannelServices().get(cpChannel.getChatChannelDomain()).publishChatMessage(text, citation, cpChannel, userIdentity);
-            } else if (chatChannel instanceof TwoPartyPrivateChatChannel p2Channel) {
-                chatService.getTwoPartyPrivateChatChannelServices().get(p2Channel.getChatChannelDomain()).sendTextMessage(text, citation, p2Channel);
-            }
+            });
+            iBisqEasyView.stateChanged();
         });
-        iBisqEasyView.stateChanged();
     }
 
     public void selectChannel(ChatChannel channel) {

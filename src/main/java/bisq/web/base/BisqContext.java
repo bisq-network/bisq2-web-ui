@@ -9,6 +9,7 @@ import bisq.chat.bisqeasy.offerbook.BisqEasyOfferbookChannelService;
 import bisq.chat.two_party.TwoPartyPrivateChatChannelService;
 import bisq.user.identity.UserIdentity;
 import bisq.user.identity.UserIdentityService;
+import bisq.user.profile.UserProfile;
 import bisq.user.profile.UserProfileService;
 import bisq.user.reputation.ProfileAgeService;
 import lombok.Getter;
@@ -90,5 +91,11 @@ public class BisqContext {
 
     public ChatChannelService findChatChannelService(ChatChannel channel) {
         return getApplicationService().getChatService().findChatChannelService(channel).get();
+    }
+
+    public String findProfileName(String authorUserProfileId) {
+        return getChatService().getUserProfileService().findUserProfile(authorUserProfileId)
+                .map(UserProfile::getUserName)
+                .orElse("");
     }
 }

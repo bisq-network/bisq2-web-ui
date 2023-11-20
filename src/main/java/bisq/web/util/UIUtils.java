@@ -3,6 +3,8 @@ package bisq.web.util;
 
 import bisq.common.observable.collection.ObservableArray;
 import bisq.common.observable.collection.ObservableSet;
+import bisq.i18n.Res;
+import bisq.web.ui.easy.Validate;
 import com.vaadin.flow.component.*;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.icon.Icon;
@@ -189,5 +191,12 @@ public class UIUtils {
                 sup.valueChanged(ev);
             }
         };
+    }
+
+    public static void validationPopup(Validate.ValidationException e) {
+        new Popup()
+                .warning(e.getMessage())
+                .actionButtonText(Res.get("ok"))
+                .show();
     }
 }

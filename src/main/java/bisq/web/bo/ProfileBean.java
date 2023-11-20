@@ -80,7 +80,7 @@ public class ProfileBean {
      * @return Optional<UserIdentity>
      */
     public Optional<UserIdentity> selectedUser() {
-        UserIdentity userIdentity = BisqContext.get().getUserIdentityService().getSelectedUserIdentity().get();
+        UserIdentity userIdentity = BisqContext.get().getUserIdentityService().getSelectedUserIdentity();
         if (userIdentity == null) {
             prepareUserGeneration();
             return Optional.empty();

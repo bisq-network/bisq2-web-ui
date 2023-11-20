@@ -1,7 +1,7 @@
 package bisq.web.base;
 
-import bisq.chat.trade.pub.PublicTradeChannel;
-import bisq.common.observable.ObservableArray;
+import bisq.chat.bisqeasy.offerbook.BisqEasyOfferbookChannel;
+import bisq.common.observable.collection.ObservableArray;
 import bisq.web.ui.admin.UserProfileView;
 import bisq.web.ui.easy.BisqEasyView;
 import com.vaadin.flow.component.Component;
@@ -46,8 +46,8 @@ public class MainLayout extends VerticalLayout implements RouterLayout, AppShell
     }
 
     private void menuTradeChannels(SubMenu bisqEasy) {
-        ObservableArray<PublicTradeChannel> channels = BisqContext.get().getApplicationService().getChatService().getPublicTradeChannelService().getChannels();
-        for (PublicTradeChannel channel : channels) {
+        ObservableArray<BisqEasyOfferbookChannel> channels = BisqContext.get().getChatService().getBisqEasyOfferbookChannelService().getChannels();
+        for (BisqEasyOfferbookChannel channel : channels) {
             bisqEasy.addItem(channel.getDisplayString(), event -> {
                 UI.getCurrent().navigate(BisqEasyView.class, new RouteParameters("channel", channel.getId()));
             });
