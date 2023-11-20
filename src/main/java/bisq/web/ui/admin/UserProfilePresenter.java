@@ -1,7 +1,7 @@
 package bisq.web.ui.admin;
 
 import bisq.common.observable.Observable;
-import bisq.common.observable.ObservableSet;
+import bisq.common.observable.collection.ObservableSet;
 import bisq.user.identity.UserIdentity;
 import bisq.web.base.BisqContext;
 import bisq.web.bo.ProfileBean;
@@ -29,7 +29,7 @@ public class UserProfilePresenter {
     }
 
     public void selectProfile(ProfileBean profile) {
-        BisqContext.get().getUserIdentityService().getSelectedUserIdentity().set(profile.getUserIdentity());
+        BisqContext.get().getUserIdentityService().selectChatUserIdentity(profile.getUserIdentity());
         BisqContext.get().getUserIdentityService().persist();
         profileOb.set(profile);
     }
@@ -38,7 +38,7 @@ public class UserProfilePresenter {
         // there must be 2 or more Ident left
         UserIdentity userIdentity = profileOb.get().getUserIdentity();
         if (userIdentities.contains(userIdentity)) {
-            BisqContext.get().getUserIdentityService().deleteUserProfile(userIdentity).join();
+            BisqContext.get().getBisqEasyService().deleteUserIdentity(userIdentity).join();
             //must wait until really delete from backend to not show the deleted again.
         }
         userIdentity = getUserIdentities().iterator().next();

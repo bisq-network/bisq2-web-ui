@@ -1,11 +1,15 @@
 package bisq.web.ui.easy;
 
+import bisq.chat.ChatChannel;
+import bisq.chat.ChatMessage;
+import bisq.chat.ChatMessageType;
 import bisq.chat.channel.Channel;
-import bisq.chat.message.ChatMessage;
 import bisq.chat.message.Quotation;
+import bisq.chat.priv.PrivateChatChannel;
+import bisq.chat.pub.PublicChatChannel;
+import bisq.chat.pub.PublicChatMessage;
 import bisq.chat.trade.priv.PrivateTradeChannel;
 import bisq.chat.trade.pub.PublicTradeChannel;
-import bisq.chat.trade.pub.PublicTradeChatMessage;
 import bisq.i18n.Res;
 import bisq.presentation.formatters.DateFormatter;
 import bisq.user.identity.UserIdentity;
@@ -54,12 +58,12 @@ public class BisqEasyView extends HorizontalLayout implements IBisqEasyView {
 
     protected final VerticalLayout chatColumn;
     protected final VerticalLayout channelColumn;
-    protected final ComboBox<PublicTradeChannel> tradeChannelBox;
-    protected final Grid<PublicTradeChannel> listTradeChannels;
+    protected final ComboBox<PublicChatChannel> tradeChannelBox;
+    protected final Grid<PublicChatChannel> listTradeChannels;
     protected final Label channelLabel;
     protected final Grid<ChatMessage> chatGrid;
     protected final TextField enterField;
-    protected final Grid<PrivateTradeChannel> privateChannelList;
+    protected final Grid<PrivateChatChannel> privateChannelList;
     protected final Div replyArea;
     protected final Div replyHeader;
     protected final Div replyAuthor;
@@ -85,7 +89,7 @@ public class BisqEasyView extends HorizontalLayout implements IBisqEasyView {
         // combo channel select
         tradeChannelBox = UIUtils.create(new ComboBox<>(), channelColumn::add, "tradeChannelBox");
         tradeChannelBox.setItems(UIUtils.providerFrom(this, presenter.publicTradeChannels()));
-        tradeChannelBox.setItemLabelGenerator(Channel::getDisplayString);
+        tradeChannelBox.setItemLabelGenerator(ChatChannel::getDisplayString);
         UIUtils.sortByLabel(tradeChannelBox);
         tradeChannelBox.addValueChangeListener(UIUtils.onClientEvent(ev -> boxSelection()));
         tradeChannelBox.setVisible(false);
@@ -102,7 +106,7 @@ public class BisqEasyView extends HorizontalLayout implements IBisqEasyView {
 
         listTradeChannels = UIUtils.create(new Grid<>(), channelColumn::add, "listTradeChannels");
         listTradeChannels.addThemeVariants(GridVariant.LUMO_NO_BORDER, GridVariant.LUMO_NO_ROW_BORDERS);
-        listTradeChannels.addColumn(Channel::getDisplayString);
+        listTradeChannels.addColumn(ChatChannel::getDisplayString);
         
         listTradeChannels.setItems(UIUtils.providerFrom(this, presenter.getVisibleChannels()));
 
@@ -121,7 +125,7 @@ public class BisqEasyView extends HorizontalLayout implements IBisqEasyView {
 
         privateChannelList = UIUtils.create(new Grid<>(), channelColumn::add, "privateChannelList");
         privateChannelList.addThemeVariants(GridVariant.LUMO_NO_BORDER, GridVariant.LUMO_NO_ROW_BORDERS);
-        privateChannelList.addColumn(Channel::getDisplayString);
+        privateChannelList.addColumn(ChatChannel::getDisplayString);
         privateChannelList.setItems(UIUtils.providerFrom(this, presenter.privateTradeChannels()));
 
 
@@ -207,7 +211,8 @@ public class BisqEasyView extends HorizontalLayout implements IBisqEasyView {
                 .filter(showOnlyOffers -> showOnlyOffers)
                 .ifPresent(showOnlyOffers ->
                         chatGrid.getListDataView().addFilter(chatMessage ->
-                                (chatMessage instanceof PublicTradeChatMessage) && ((PublicTradeChatMessage) chatMessage).isOfferMessage())
+                                (chatMessage instanceof PublicChatMessage) && chatMessage.getChatMessageType() == ChatMessageType.TAKE_BISQ_EASY_OFFER)
+                        //isOfferMessage())
                 );
         chatGrid.scrollToEnd();
     }
@@ -321,7 +326,7 @@ public class BisqEasyView extends HorizontalLayout implements IBisqEasyView {
             new Popup().warning(Res.get("social.privateChannel.leave.warning",//
                             privateTradeChannel.getMyUserIdentity().getUserName())) //
                     .cancelButton() //
-                    .actionText(Res.get("social.privateChannel.leave")) //
+                    .actionButtonText(Res.get("social.privateChannel.leave")) //
                     .onAction(presenter::hideSelectedChannel)
                     .show();
         } else {

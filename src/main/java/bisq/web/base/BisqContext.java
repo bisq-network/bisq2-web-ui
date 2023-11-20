@@ -1,10 +1,12 @@
 package bisq.web.base;
 
-import bisq.application.DefaultApplicationService;
+import bisq.bisq_easy.BisqEasyService;
+import bisq.chat.ChatChannel;
+import bisq.chat.ChatChannelDomain;
+import bisq.chat.ChatChannelService;
 import bisq.chat.ChatService;
-import bisq.chat.trade.TradeChannelSelectionService;
-import bisq.chat.trade.priv.PrivateTradeChannelService;
-import bisq.chat.trade.pub.PublicTradeChannelService;
+import bisq.chat.bisqeasy.offerbook.BisqEasyOfferbookChannelService;
+import bisq.chat.two_party.TwoPartyPrivateChatChannelService;
 import bisq.user.identity.UserIdentity;
 import bisq.user.identity.UserIdentityService;
 import bisq.user.profile.UserProfileService;
@@ -18,12 +20,12 @@ public class BisqContext {
 
     static BisqContext instance = new BisqContext();
     @Getter
-    protected DefaultApplicationService applicationService;
+    protected WebApplicationService applicationService;
     public BisqContext() {
     }
 
     public static void startP2PNetwork(String... args) {
-        instance.applicationService = new DefaultApplicationService(args);
+        instance.applicationService = new WebApplicationService(args);
         instance.applicationService.readAllPersisted().thenCompose(result -> instance.applicationService.initialize()).join();
     }
 
@@ -42,20 +44,8 @@ public class BisqContext {
         return BisqContext.get().getApplicationService().getUserService().getUserProfileService();
     }
 
-    public PublicTradeChannelService getPublicTradeChannelService() {
-        return getApplicationService().getChatService().getPublicTradeChannelService();
-    }
-
-    public PrivateTradeChannelService getPrivateTradeChannelService() {
-        return getApplicationService().getChatService().getPrivateTradeChannelService();
-    }
-
     public ChatService getChatService() {
         return getApplicationService().getChatService();
-    }
-
-    public TradeChannelSelectionService getTradeChannelSelectionService() {
-        return getChatService().getTradeChannelSelectionService();
     }
 
     public void setUser(UserIdentity userIdentity) {
@@ -66,7 +56,7 @@ public class BisqContext {
             userFutureOpt.get().join(); // wait for it to finish.
             userFutureOpt = Optional.empty();
         }
-        UserIdentity userIdentity = getUserIdentityService().getSelectedUserIdentity().get();
+        UserIdentity userIdentity = getUserIdentityService().getSelectedUserIdentity();
         if (userIdentity == null)
             throw new NullPointerException("UserIdentity must not be null at this point.");
         return userIdentity;
@@ -82,4 +72,23 @@ public class BisqContext {
         return getApplicationService().getUserService().getReputationService().getProfileAgeService();
     }
 
+    public BisqEasyService getBisqEasyService() {
+        return getApplicationService().getBisqEasyService();
+    }
+
+    public BisqEasyOfferbookChannelService getBisqEasyOfferbookChannelService() {
+        return getApplicationService().getChatService().getBisqEasyOfferbookChannelService();
+    }
+
+    public TwoPartyPrivateChatChannelService getPrivateChat2PService() {
+        return getApplicationService().getChatService().getTwoPartyPrivateChatChannelServices().get(ChatChannelDomain.BISQ_EASY_PRIVATE_CHAT);
+    }
+
+    public BisqEasyOfferbookChannelService BisqEasyOfferbookChannelService() {
+        return getApplicationService().getChatService().getBisqEasyOfferbookChannelService();
+    }
+
+    public ChatChannelService findChatChannelService(ChatChannel channel) {
+        return getApplicationService().getChatService().findChatChannelService(channel).get();
+    }
 }

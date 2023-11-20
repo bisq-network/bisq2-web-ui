@@ -1,7 +1,8 @@
 package bisq.web.util;
 
-import bisq.common.observable.ObservableArray;
-import bisq.common.observable.ObservableSet;
+
+import bisq.common.observable.collection.ObservableArray;
+import bisq.common.observable.collection.ObservableSet;
 import com.vaadin.flow.component.*;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.icon.Icon;
@@ -190,5 +191,3 @@ public class UIUtils {
         };
     }
 }
-
-

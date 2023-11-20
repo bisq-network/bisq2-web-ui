@@ -59,6 +59,17 @@ dependencies {
     implementation('bisq:presentation')
     implementation('bisq:application')
     implementation('bisq:support')
+    implementation('bisq:trade')
+    implementation('bisq:bonded_roles')
+    implementation('bisq:bisq_easy')
+
+    implementation("wallets:electrum")
+    implementation("wallets:bitcoind")
+
+    implementation libs.google.gson
+    implementation libs.google.guava
+    implementation libs.typesafe.config
+    implementation libs.bundles.jackson
 
     // logging
     implementation 'ch.qos.logback:logback-classic:1.2.11'
