@@ -42,7 +42,7 @@ public class BisqEasyPresenter {
     @Getter
     @Setter
     protected ChatMessage replyMessage;
-    protected ObservableArray<BisqEasyOfferbookChannel> visibleChannels = new ObservableArray<>();
+    protected ObservableArray<BisqEasyOfferbookChannel> visibleChannels;
 
     public BisqEasyPresenter(IBisqEasyView iBisqEasyView) {
         this.iBisqEasyView = iBisqEasyView;
@@ -52,11 +52,11 @@ public class BisqEasyPresenter {
 
     public ObservableArray<BisqEasyOfferbookChannel> getVisibleChannels() {
         if (visibleChannels == null) {
+            visibleChannels = new ObservableArray<>();
             BisqEasyOfferbookChannelService channelService = BisqContext.get().getBisqEasyOfferbookChannelService();
             ObservableSet<String> visibleChannelIds = channelService.getVisibleChannelIds();
             visibleChannelIds.addObserver(() -> {
-                visibleChannels.clear();
-                visibleChannels.addAll(channelService.getChannels().stream() //
+                visibleChannels.setAll(channelService.getChannels().stream() //
                         .filter(channelService::isVisible)
                         .sorted(Comparator.comparing(BisqEasyOfferbookChannel::getDisplayString))
                         .collect(Collectors.toList()));
@@ -119,23 +119,10 @@ public class BisqEasyPresenter {
                     String dontShowAgainId = "sendMsgOfferOnlyWarn";
                     if (settingsService.getOffersOnly().get()) {
                         settingsService.setOffersOnly(false);
-//                        new Popup().information(Res.get("chat.message.send.offerOnly.warn"))
-//                                .actionButtonText(Res.get("confirmation.yes"))
-//                                .onAction(() -> settingsService.setOffersOnly(false))
-//                                .closeButtonText(Res.get("confirmation.no"))
-//                                .dontShowAgainId(dontShowAgainId)
-//                                .show();
                     }
                     chatService.getBisqEasyOfferbookChannelService().publishChatMessage(text, citation, obChannel, userIdentity);
                 } else if (chatChannel instanceof BisqEasyOpenTradeChannel) {
-                    //                if (settingsService.getTradeRulesConfirmed().get() || ((BisqEasyOpenTradeChannel) chatChannel).isMediator()) {
                     chatService.getBisqEasyOpenTradeChannelService().sendTextMessage(text, citation, (BisqEasyOpenTradeChannel) chatChannel);
-                    //                } else {
-                    //                    new Popup().information(Res.get("bisqEasy.tradeGuide.notConfirmed.warn"))
-                    //                            .actionButtonText(Res.get("bisqEasy.tradeGuide.open"))
-                    //                            .onAction(() -> Navigation.navigateTo(NavigationTarget.BISQ_EASY_GUIDE))
-                    //                            .show();
-                    //                }
                 } else if (chatChannel instanceof CommonPublicChatChannel cpChannel) {
                     chatService.getCommonPublicChatChannelServices().get(cpChannel.getChatChannelDomain()).publishChatMessage(text, citation, cpChannel, userIdentity);
                 } else if (chatChannel instanceof TwoPartyPrivateChatChannel p2Channel) {
@@ -192,16 +179,6 @@ public class BisqEasyPresenter {
         }
     }
 
-    //bisq.desktop.primary.main.content.components.ChatMessagesComponent.Controller.getMyUserProfilesInChannel
-//    public List<UserIdentity> getMyUserProfilesInChannel() {
-//        return chatMessages.stream()
-//                .sorted(Comparator.comparing(ChatMessage::getDate).reversed())
-//                .map(ChatMessage::getAuthorId)
-//                .map(BisqContext.get().getUserIdentityService()::findUserIdentity)
-//                .flatMap(Optional::stream)
-//                .distinct()
-//                .collect(Collectors.toList());
-//    }
     public Optional<UserIdentity> myLastProfileInChannel() {
         return chatMessages.stream()
                 .sorted(Comparator.comparing(ChatMessage::getDate).reversed())
