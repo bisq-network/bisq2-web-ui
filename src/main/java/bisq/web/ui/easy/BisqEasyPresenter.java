@@ -36,7 +36,7 @@ public class BisqEasyPresenter {
     protected Optional<ChatChannel> selectedChannel;
     @Getter
     protected IBisqEasyView iBisqEasyView;
-    protected Pin selectedChannelPin;
+    protected Optional<Pin> selectedChannelPin = Optional.empty();
     @Getter
     protected ObservableArray<ChatMessage> chatMessages = new ObservableArray<ChatMessage>();
     @Getter
@@ -55,12 +55,12 @@ public class BisqEasyPresenter {
             visibleChannels = new ObservableArray<>();
             BisqEasyOfferbookChannelService channelService = BisqContext.get().getBisqEasyOfferbookChannelService();
             ObservableSet<String> visibleChannelIds = channelService.getVisibleChannelIds();
-            visibleChannelIds.addObserver(() -> {
+            visibleChannelIds.addObserver(() ->
                 visibleChannels.setAll(channelService.getChannels().stream() //
                         .filter(channelService::isVisible)
                         .sorted(Comparator.comparing(BisqEasyOfferbookChannel::getDisplayString))
-                        .collect(Collectors.toList()));
-            });
+                        .collect(Collectors.toList()))
+            );
         }
         return visibleChannels;
     }
@@ -104,7 +104,7 @@ public class BisqEasyPresenter {
     public Optional<Validate.ValidationException> sendMessage(UserIdentity userIdentity, String text) {
         return Validate.thisCode(validate -> {
             validate.that(userIdentity != null, "UserIdentity not set");
-            validate.that(userIdentity != null, "no text to send.");
+            validate.that(text != null && !text.isBlank(), "no text to send.");
             selectedChannel.ifPresent(chatChannel -> {
                 validate.that(text.length() <= ChatMessage.MAX_TEXT_LENGTH,
                         Res.get("validation.tooLong", ChatMessage.MAX_TEXT_LENGTH));
@@ -116,7 +116,6 @@ public class BisqEasyPresenter {
                         Res.get("validation.tooLong", Citation.MAX_TEXT_LENGTH));
 
                 if (chatChannel instanceof BisqEasyOfferbookChannel obChannel) {
-                    String dontShowAgainId = "sendMsgOfferOnlyWarn";
                     if (settingsService.getOffersOnly().get()) {
                         settingsService.setOffersOnly(false);
                     }
@@ -138,17 +137,14 @@ public class BisqEasyPresenter {
             return;
         }
         selectedChannel = Optional.ofNullable(channel);
-        BisqContext.get().getChatService().getChatChannelSelectionService(channel.getChatChannelDomain()).selectChannel(channel);
-        if (selectedChannelPin != null) {
-            selectedChannelPin.unbind();
-        }
+        selectedChannelPin.ifPresent(Pin::unbind);
 
-        if (selectedChannel.isPresent()) {
-            selectedChannelPin = channel.getChatMessages().addObserver(() -> {
-                chatMessages.clear();
-                chatMessages.addAll(channel.getChatMessages());
-            });
-        }
+        selectedChannel.ifPresent(ch -> {
+            BisqContext.get().getChatService().getChatChannelSelectionService(ch.getChatChannelDomain()).selectChannel(channel);
+            selectedChannelPin = Optional.of(ch.getChatMessages().addObserver(() ->
+                    chatMessages.setAll(ch.getChatMessages())
+            ));
+        });
         iBisqEasyView.stateChanged();
     }
 
@@ -162,9 +158,8 @@ public class BisqEasyPresenter {
 
     public void hideSelectedChannel() {
         selectedChannel.ifPresent(channel -> {
-            if (selectedChannelPin != null) {
-                selectedChannelPin.unbind();
-            }
+            selectedChannelPin.ifPresent(Pin::unbind);
+
             BisqContext.get().findChatChannelService(channel).leaveChannel(channel);
                 // persist is done by leaveChannel
             chatMessages.clear();
