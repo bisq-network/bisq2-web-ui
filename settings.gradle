@@ -3,6 +3,13 @@ pluginManagement {
         id 'com.vaadin' version "${vaadinVersion}"
     }
 }
+dependencyResolutionManagement {
+    versionCatalogs {
+        libs {
+            from(files("bisq/gradle/libs.versions.toml"))
+        }
+    }
+}
 
 rootProject.name = 'bisq2-web-ui'
 

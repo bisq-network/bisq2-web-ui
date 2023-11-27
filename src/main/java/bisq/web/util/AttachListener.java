@@ -1,9 +1,9 @@
 package bisq.web.util;
 
 import bisq.common.observable.Observable;
-import bisq.common.observable.ObservableArray;
-import bisq.common.observable.ObservableSet;
 import bisq.common.observable.Pin;
+import bisq.common.observable.collection.ObservableArray;
+import bisq.common.observable.collection.ObservableSet;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.function.SerializableConsumer;
@@ -22,12 +22,12 @@ public class AttachListener<T> {
         this.bound2lifecycle = bound2lifecycle;
         Runnable changeListener = () -> access(run);
         if (bound2lifecycle.isAttached()) {
-            pin = observableSet.addChangedListener(changeListener);
+            pin = observableSet.addObserver(changeListener);
         }
         bound2lifecycle.addAttachListener(ev -> {
             if (pin != null) throw new RuntimeException();
             log.info("attaching " + changeListener);
-            pin = observableSet.addChangedListener(changeListener);
+            pin = observableSet.addObserver(changeListener);
         });
         bound2lifecycle.addDetachListener(ev -> {
             if (pin == null) throw new RuntimeException();
@@ -53,12 +53,12 @@ public class AttachListener<T> {
         this.bound2lifecycle = bound2lifecycle;
         Runnable changeListener = () -> access(run);
         if (bound2lifecycle.isAttached()) {
-            pin = observablearray.addChangedListener(changeListener);
+            pin = observablearray.addObserver(changeListener);
         }
         bound2lifecycle.addAttachListener(ev -> {
             if (pin != null) throw new RuntimeException();
             log.info("attaching " + changeListener);
-            pin = observablearray.addChangedListener(changeListener);
+            pin = observablearray.addObserver(changeListener);
         });
         bound2lifecycle.addDetachListener(ev -> {
             if (pin == null) throw new RuntimeException();

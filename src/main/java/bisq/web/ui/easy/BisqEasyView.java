@@ -1,11 +1,12 @@
 package bisq.web.ui.easy;
 
-import bisq.chat.channel.Channel;
-import bisq.chat.message.ChatMessage;
-import bisq.chat.message.Quotation;
-import bisq.chat.trade.priv.PrivateTradeChannel;
-import bisq.chat.trade.pub.PublicTradeChannel;
-import bisq.chat.trade.pub.PublicTradeChatMessage;
+import bisq.chat.ChatChannel;
+import bisq.chat.ChatMessage;
+import bisq.chat.ChatMessageType;
+import bisq.chat.Citation;
+import bisq.chat.bisqeasy.offerbook.BisqEasyOfferbookChannel;
+import bisq.chat.priv.PrivateChatChannel;
+import bisq.chat.pub.PublicChatMessage;
 import bisq.i18n.Res;
 import bisq.presentation.formatters.DateFormatter;
 import bisq.user.identity.UserIdentity;
@@ -54,12 +55,12 @@ public class BisqEasyView extends HorizontalLayout implements IBisqEasyView {
 
     protected final VerticalLayout chatColumn;
     protected final VerticalLayout channelColumn;
-    protected final ComboBox<PublicTradeChannel> tradeChannelBox;
-    protected final Grid<PublicTradeChannel> listTradeChannels;
+    protected final ComboBox<BisqEasyOfferbookChannel> tradeChannelBox;
+    protected final Grid<BisqEasyOfferbookChannel> listTradeChannels;
     protected final Label channelLabel;
     protected final Grid<ChatMessage> chatGrid;
     protected final TextField enterField;
-    protected final Grid<PrivateTradeChannel> privateChannelList;
+    protected final Grid<PrivateChatChannel> privateChannelList;
     protected final Div replyArea;
     protected final Div replyHeader;
     protected final Div replyAuthor;
@@ -85,7 +86,7 @@ public class BisqEasyView extends HorizontalLayout implements IBisqEasyView {
         // combo channel select
         tradeChannelBox = UIUtils.create(new ComboBox<>(), channelColumn::add, "tradeChannelBox");
         tradeChannelBox.setItems(UIUtils.providerFrom(this, presenter.publicTradeChannels()));
-        tradeChannelBox.setItemLabelGenerator(Channel::getDisplayString);
+        tradeChannelBox.setItemLabelGenerator(ChatChannel::getDisplayString);
         UIUtils.sortByLabel(tradeChannelBox);
         tradeChannelBox.addValueChangeListener(UIUtils.onClientEvent(ev -> boxSelection()));
         tradeChannelBox.setVisible(false);
@@ -102,7 +103,7 @@ public class BisqEasyView extends HorizontalLayout implements IBisqEasyView {
 
         listTradeChannels = UIUtils.create(new Grid<>(), channelColumn::add, "listTradeChannels");
         listTradeChannels.addThemeVariants(GridVariant.LUMO_NO_BORDER, GridVariant.LUMO_NO_ROW_BORDERS);
-        listTradeChannels.addColumn(Channel::getDisplayString);
+        listTradeChannels.addColumn(ChatChannel::getDisplayString);
         
         listTradeChannels.setItems(UIUtils.providerFrom(this, presenter.getVisibleChannels()));
 
@@ -121,7 +122,7 @@ public class BisqEasyView extends HorizontalLayout implements IBisqEasyView {
 
         privateChannelList = UIUtils.create(new Grid<>(), channelColumn::add, "privateChannelList");
         privateChannelList.addThemeVariants(GridVariant.LUMO_NO_BORDER, GridVariant.LUMO_NO_ROW_BORDERS);
-        privateChannelList.addColumn(Channel::getDisplayString);
+        privateChannelList.addColumn(ChatChannel::getDisplayString);
         privateChannelList.setItems(UIUtils.providerFrom(this, presenter.privateTradeChannels()));
 
 
@@ -207,7 +208,8 @@ public class BisqEasyView extends HorizontalLayout implements IBisqEasyView {
                 .filter(showOnlyOffers -> showOnlyOffers)
                 .ifPresent(showOnlyOffers ->
                         chatGrid.getListDataView().addFilter(chatMessage ->
-                                (chatMessage instanceof PublicTradeChatMessage) && ((PublicTradeChatMessage) chatMessage).isOfferMessage())
+                                (chatMessage instanceof PublicChatMessage) && chatMessage.getChatMessageType() == ChatMessageType.TAKE_BISQ_EASY_OFFER)
+                        //isOfferMessage())
                 );
         chatGrid.scrollToEnd();
     }
@@ -225,7 +227,8 @@ public class BisqEasyView extends HorizontalLayout implements IBisqEasyView {
     private void send() {
         String text = enterField.getValue();
         if (text != null && !text.isEmpty() && identitySelect.getOptionalValue().isPresent()) {
-            presenter.sendMessage(identitySelect.getValue(), text);
+            presenter.sendMessage(identitySelect.getValue(), text)
+                    .ifPresent(UIUtils::validationPopup);
         }
         enterField.setValue(enterField.getEmptyValue());
         replyArea.setVisible(false);
@@ -250,14 +253,14 @@ public class BisqEasyView extends HorizontalLayout implements IBisqEasyView {
         String date = DateFormatter.formatDateTime(new Date(message.getDate()), DateFormat.MEDIUM, DateFormat.SHORT, true, " " + Res.get("at") + " ");
         UIUtils.create(new Span(date), nameTag::add, "messDate");
         Div msgTag = UIUtils.create(new Div(), msgBorder::add, "msgTag");
-        message.getQuotation() //
-                .filter(Quotation::isValid) //
+        message.getCitation() //
+                .filter(Citation::isValid) //
                 .ifPresent(quote -> {
                             //quoteBox
                             Div quoteBox = UIUtils.create(new Div(), msgTag::add, "quoteBox");
                             Div quoteAuthor = UIUtils.create(new Div(), quoteBox::add, "quoteAuthor");
-                            quoteAuthor.setText(quote.getNickName());
-                            quoteBox.add(new Text(quote.getMessage()));
+                    quoteAuthor.setText(BisqContext.get().findProfileName(quote.getAuthorUserProfileId()));
+                    quoteBox.add(new Text(quote.getText()));
                         }
                 );
         msgTag.add(new Text(messageText(message)));
@@ -289,15 +292,16 @@ public class BisqEasyView extends HorizontalLayout implements IBisqEasyView {
     @Override
     public void stateChanged() {
 
-        channelLabel.setText(presenter.getSelectedChannel().map(Channel::getDisplayString).orElse(""));
-        PublicTradeChannel publicTradeChannel = presenter.getSelectedChannel()
-                .filter(PublicTradeChannel.class::isInstance)
-                .map(PublicTradeChannel.class::cast)
+        channelLabel.setText(presenter.getSelectedChannel().map(ChatChannel::getDisplayString).orElse(""));
+        BisqEasyOfferbookChannel publicTradeChannel = presenter.getSelectedChannel()
+                .filter(BisqEasyOfferbookChannel.class::isInstance)
+                .map(BisqEasyOfferbookChannel.class::cast)
                 .orElse(null);
         listTradeChannels.select(publicTradeChannel);
         listTradeChannels.getDataProvider().refreshAll();
-        PrivateTradeChannel privateTradeChannel = (PrivateTradeChannel) presenter.getSelectedChannel()
-                .filter(PrivateTradeChannel.class::isInstance)
+
+        PrivateChatChannel privateTradeChannel = (PrivateChatChannel) presenter.getSelectedChannel()
+                .filter(PrivateChatChannel.class::isInstance)
                 .orElse(null);
         privateChannelList.select(privateTradeChannel);
         identitySelect.setVisible(privateTradeChannel == null);
@@ -315,13 +319,13 @@ public class BisqEasyView extends HorizontalLayout implements IBisqEasyView {
     }
 
     private void hideChannel() {
-        if (presenter.getSelectedChannel().isPresent() && presenter.getSelectedChannel().get() instanceof PrivateTradeChannel) {
-            PrivateTradeChannel privateTradeChannel = (PrivateTradeChannel) presenter.getSelectedChannel().get();
+        if (presenter.getSelectedChannel().isPresent() && presenter.getSelectedChannel().get() instanceof PrivateChatChannel) {
+            PrivateChatChannel privateTradeChannel = (PrivateChatChannel) presenter.getSelectedChannel().get();
 
             new Popup().warning(Res.get("social.privateChannel.leave.warning",//
                             privateTradeChannel.getMyUserIdentity().getUserName())) //
                     .cancelButton() //
-                    .actionText(Res.get("social.privateChannel.leave")) //
+                    .actionButtonText(Res.get("social.privateChannel.leave")) //
                     .onAction(presenter::hideSelectedChannel)
                     .show();
         } else {

@@ -96,12 +96,12 @@ public class UserProfileView extends Div {
         ListDataProvider<UserIdentity> profilesProvider = UIUtils.providerFrom(this, getPresenter().createUserIdentityObserver(), getPresenter().getProfileDetailsChangedEvent());
         profileSelection.setItems(profilesProvider);
         // hide delete button iff only one left.
-        new AttachListener(this, getPresenter().getUserIdentities(), () -> deleteButton.setEnabled(getPresenter().userIdentities.size() > 1));
+        new AttachListener(this, getPresenter().getUserIdentities(), () -> deleteButton.setEnabled(getPresenter().getUserIdentities().size() > 1));
         new AttachListener<ProfileBean>(this, getPresenter().getProfileOb(), this::loadProfile);
         new AttachListener<UserIdentity>(this, getPresenter().getProfileDetailsChangedEvent(), this::loadUserIdentity);
 
         getPresenter().selectProfile(new ProfileBean().loadFromIdentity(
-                BisqContext.get().getUserIdentityService().getSelectedUserIdentity().get()));
+                BisqContext.get().getUserIdentityService().getSelectedUserIdentity()));
     }
 
     private void loadProfile(ProfileBean profile) {
@@ -124,7 +124,7 @@ public class UserProfileView extends Div {
     private void delete() {
         new Popup().warning(Res.get("settings.userProfile.deleteProfile.warning"))
                 .onAction(getPresenter()::deleteProfile)
-                .actionText(Res.get("settings.userProfile.deleteProfile.warning.yes"))
+                .actionButtonText(Res.get("settings.userProfile.deleteProfile.warning.yes"))
                 .cancelButton()
                 .show();
     }

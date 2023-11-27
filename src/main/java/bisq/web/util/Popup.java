@@ -13,6 +13,7 @@ import java.util.function.Consumer;
  */
 public class Popup extends Dialog {
 
+    protected Button cancelButton;
     Button actionButton;
 
     public Popup() {
@@ -22,6 +23,11 @@ public class Popup extends Dialog {
         setDraggable(true);
         setCloseOnOutsideClick(false);
         setModal(true);
+    }
+
+    public Popup information(String infoText) {
+        setHeaderTitle(infoText);
+        return this;
     }
 
     public Popup warning(String warnText) {
@@ -42,10 +48,16 @@ public class Popup extends Dialog {
     }
 
     public Popup cancelButton() {
-        Button cancel = new Button(Res.get("cancel"));
-        cancel.addClassName("cancelButton");
-        cancel.addClickListener(ev -> close());
-        getFooter().add(cancel);
+        cancelButton = new Button(Res.get("cancel"));
+        cancelButton.addClassName("cancelButton");
+        cancelButton.addClickListener(ev -> close());
+        getFooter().add(cancelButton);
+        return this;
+    }
+
+    public Popup closeButtonText(String closeText) {
+        cancelButton();
+        cancelButton.setText(closeText);
         return this;
     }
 
@@ -63,7 +75,7 @@ public class Popup extends Dialog {
         return actionButton;
     }
 
-    public Popup actionText(String actionText) {
+    public Popup actionButtonText(String actionText) {
         getActionButton().setText(actionText);
         return this;
     }
@@ -78,6 +90,11 @@ public class Popup extends Dialog {
 
     public Popup show() {
         open();
+        return this;
+    }
+
+    public Popup dontShowAgainId(String dontShowAgainId) {
+        //TODO implement dontShowAgainId
         return this;
     }
 }
