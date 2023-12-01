@@ -6,6 +6,7 @@ import com.vaadin.flow.component.UI;
 import com.vaadin.flow.server.ErrorEvent;
 import com.vaadin.flow.server.ServiceInitEvent;
 import com.vaadin.flow.server.VaadinServiceInitListener;
+import com.vaadin.flow.server.VaadinSession;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDateTime;
@@ -15,9 +16,10 @@ public class ServiceListener implements VaadinServiceInitListener {
 
     @Override
     public void serviceInit(ServiceInitEvent event) {
-        // TODO: v24
-//        event.getSource().addSessionInitListener(
-//                initEvent -> initEvent.getSession().setErrorHandler(this::error));
+        event.getSource().addSessionInitListener(
+                initEvent ->VaadinSession.getCurrent().setErrorHandler(this::error)
+//                initEvent -> initEvent.getSession().setErrorHandler(this::error)
+        );
     }
 
     public void error(ErrorEvent errorEvent) {

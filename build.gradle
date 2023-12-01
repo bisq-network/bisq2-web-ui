@@ -46,7 +46,7 @@ dependencies {
 
     implementation("com.vaadin:vaadin-core")
     implementation 'org.parttio:line-awesome:1.1.0'
-    compileOnly("javax.servlet:javax.servlet-api:3.1.0")
+    compileOnly("jakarta.servlet:jakarta.servlet-api:5.0.0")
 
     implementation('bisq:common')
     implementation('bisq:persistence')
@@ -75,8 +75,6 @@ dependencies {
     implementation libs.typesafe.config
     implementation libs.bundles.jackson
 
-    // logging
-    implementation 'ch.qos.logback:logback-classic:1.2.11'
     compileOnly 'org.projectlombok:lombok:1.18.24'
     annotationProcessor 'org.projectlombok:lombok:1.18.24'
 
