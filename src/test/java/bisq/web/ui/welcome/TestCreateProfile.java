@@ -12,6 +12,7 @@ import bisq.web.bo.ProfileBean;
 import ch.qos.logback.classic.LoggerContext;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
+import org.slf4j.ILoggerFactory;
 import org.slf4j.LoggerFactory;
 
 import java.security.KeyPair;
@@ -49,7 +50,7 @@ public class TestCreateProfile {
 //    }
     @Test
     public void createProfile2() {
-        LoggerContext loggerContext = (LoggerContext) LoggerFactory.getILoggerFactory();
+        ILoggerFactory loggerContext =  LoggerFactory.getILoggerFactory();
         // GenerateNewProfileStep2Controller
         IdentityService identityService = BisqContext.get().getApplicationService().getIdentityService();
         KeyPair keyPair = BisqContext.get().getApplicationService().getKeyPairService().generateKeyPair();

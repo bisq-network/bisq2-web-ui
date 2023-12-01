@@ -1,4 +1,4 @@
 [submodule "bisq"]
 	path = bisq
 	url = https://github.com/salokiam/bisq2.git
-	branch = update-to-vaadin24
+	branch = up-bisq2-libs
