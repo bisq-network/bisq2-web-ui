@@ -57,7 +57,7 @@ public class BisqEasyView extends HorizontalLayout implements IBisqEasyView {
     protected final VerticalLayout channelColumn;
     protected final ComboBox<BisqEasyOfferbookChannel> tradeChannelBox;
     protected final Grid<BisqEasyOfferbookChannel> listTradeChannels;
-    protected final Label channelLabel;
+    protected final Div channelLabel;
     protected final Grid<ChatMessage> chatGrid;
     protected final TextField enterField;
     protected final Grid<PrivateChatChannel> privateChannelList;
@@ -80,7 +80,7 @@ public class BisqEasyView extends HorizontalLayout implements IBisqEasyView {
 
         UIUtils.create(new Image("./images/logo_grey.png", "Bisq logo"), channelColumn::add);
 
-        Label marketLabel = UIUtils.create(new Label("Market channels"), channelColumn::add, "marketLabel");
+        UIUtils.create(new Span("Market channels"), channelColumn::add, "marketLabel");
         //Res.get("social.marketChannels"));
 
         // combo channel select
@@ -118,7 +118,7 @@ public class BisqEasyView extends HorizontalLayout implements IBisqEasyView {
         channelColumn.add(divider);
 
         // private section  ----------------------------------------------------------
-        UIUtils.create(new Label("Private channels"), channelColumn::add, "privateLabel");
+        UIUtils.create(new Span("Private channels"), channelColumn::add, "privateLabel");
 
         privateChannelList = UIUtils.create(new Grid<>(), channelColumn::add, "privateChannelList");
         privateChannelList.addThemeVariants(GridVariant.LUMO_NO_BORDER, GridVariant.LUMO_NO_ROW_BORDERS);
@@ -140,7 +140,7 @@ public class BisqEasyView extends HorizontalLayout implements IBisqEasyView {
 
         // header -----
         HorizontalLayout chatHeader = UIUtils.create(new HorizontalLayout(), chatColumn::add, "chatHeader");
-        channelLabel = UIUtils.create(new Label(), chatHeader::add, "channelLabel");
+        channelLabel = UIUtils.create(new Div(), chatHeader::add, "channelLabel");
         offerOnlyCheck = UIUtils.create(new Checkbox("Offers only"), chatHeader::add, "offerOnlyCheck");
         offerOnlyCheck.addClickListener(event -> offersOnly());
         searchField = UIUtils.create(new TextField(), chatHeader::add, "searchField");
